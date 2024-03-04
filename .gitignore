@@ -1,33 +1,75 @@
-# Gradle files
-.gradle/
-build/
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Log/OS Files
+# Miscellaneous
+*.class
 *.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.apk
-output.json
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Android files
+android/.gradle
+android/build/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/**/GeneratedPluginRegistrant.*
+
+# iOS files
+ios/.generated/
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Generated.xcconfig
+ios/build/
+ios/Flutter/.last_build_id
+ios/Pods/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Runner.xcworkspace/xcuserdata/
+
+# macOS files
+macos/Flutter/ephemeral/
+macos/Flutter/flutter_export_environment.sh
+macos/Flutter/GeneratedPluginRegistrant.*
+macos/Pods/
+macos/Runner/GeneratedPluginRegistrant.*
+
+# Web files
+/web:build/
+
+# Windows files
+windows/flutter/ephemeral/
+
+# Linux files
+linux/flutter/ephemeral/
+linux/.dart_tool/
+linux/Flutter/ephemeral/
 
 # IntelliJ
-*.iml
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+*.iml
+*.ipr
+*.iws
+.idea/modules.xml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/libraries
 
-# Keystore files
-*.jks
-*.keystore
+# VSCode
+.vscode/
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+# Packages
+*.tar.gz
+*.zip
+*.rar
 
-# Android Profiling
-*.hprof
+# pubspec.lock files should not be ignored for library packages.
+# Uncomment the following line if this is an application.
+# pubspec.lock
