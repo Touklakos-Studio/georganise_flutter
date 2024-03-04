@@ -49,5 +49,3 @@ Une fois que vous avez configuré votre environnement, vous êtes prêt à exéc
 
 - Pour vérifier si votre environnement Flutter est correctement configuré, vous pouvez exécuter `flutter doctor`, qui diagnostiquera les éventuels problèmes avec votre installation de Flutter, Android Studio, ou les dispositifs connectés.
 - Si vous rencontrez des problèmes avec les dépendances, essayez de nettoyer le cache des packages avec `flutter pub cache repair` et exécutez à nouveau `flutter pub get`.
-
-Nous espérons que ce guide vous aidera à démarrer rapidement avec le développement de notre projet Flutter. Bon codage !
