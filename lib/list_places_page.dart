@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
-import 'place_card.dart'; // If you use a custom widget for displaying places
+import 'place_card.dart';
+import 'place.dart'; // Make sure this import path matches your file structure
 
 class ListPlacesPage extends StatelessWidget {
+  // Example places data
+  final List<Place> places = List.generate(
+    10,
+    (index) => Place(
+      title: 'Place $index',
+      description: 'Description for place $index, a great place to visit.',
+      tags: ['tag1', 'tag2'],
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
-    // Use a SafeArea to avoid any padding issues with system UI
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -24,15 +34,13 @@ class ListPlacesPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView.builder(
-          itemCount:
-              10, // TODO : Replace with the actual number of PlaceCard you have
+          itemCount: places.length,
           itemBuilder: (context, index) {
+            final place = places[index];
             return Column(
               children: [
-                PlaceCard(), // Your PlaceCard widget
-                if (index ==
-                    4) // Assuming index 4 is where you want to insert the divider
-                  Divider(color: Colors.white),
+                PlaceCard(place: place),
+                if (index < places.length - 1) Divider(color: Colors.grey),
               ],
             );
           },

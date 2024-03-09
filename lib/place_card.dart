@@ -1,46 +1,37 @@
 import 'package:flutter/material.dart';
-// Add any other imports needed for this widget, such as models or controllers
+import 'place.dart'; // Ensure this matches your file structure
 
-class PlaceCard extends StatefulWidget {
-  @override
-  _PlaceCardState createState() => _PlaceCardState();
-}
+class PlaceCard extends StatelessWidget {
+  final Place place;
 
-class _PlaceCardState extends State<PlaceCard> {
+  PlaceCard({required this.place});
+
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.all(8.0), // Add margin to the card
+      margin: EdgeInsets.all(8.0),
       child: Padding(
-        padding: EdgeInsets.all(8.0), // Add padding inside the card
+        padding: EdgeInsets.all(8.0),
         child: Column(
-          mainAxisSize:
-              MainAxisSize.min, // Use the minimum space needed by the children
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ListTile(
-              title: Text('Title'),
+              title: Text(place.title),
               subtitle: Text(
-                'Description, Lorem Ipsum fakindhu nhun anu nhuaz nhuind nahuzn uhnazduhnu abu buhbz uhbuazdb uhu buazdhb uhzalb huhduzab uh ubhazud buazb.',
+                place.description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: 8.0), // Add padding around the tag area
+              padding: EdgeInsets.symmetric(vertical: 8.0),
               child: Wrap(
                 spacing: 8.0,
-                children: <Widget>[
-                  Chip(
-                    label: Text('tag1'),
-                  ),
-                  Chip(
-                    label: Text('tag2'),
-                  ),
-                  Chip(
-                    label: Text('tag3'),
-                  ),
-                ],
+                children: place.tags
+                    .map((tag) => Chip(
+                          label: Text(tag),
+                        ))
+                    .toList(),
               ),
             ),
             ButtonBar(
@@ -58,7 +49,6 @@ class _PlaceCardState extends State<PlaceCard> {
                     // Implement download/export functionality
                   },
                 ),
-                // If you're not the owner, show the person icon
                 IconButton(
                   icon: Icon(Icons.person),
                   onPressed: () {
