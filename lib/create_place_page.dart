@@ -141,7 +141,13 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: _sendPlaceData,
-              child: Text('Create Place'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green,
+              ),
+              child: Text(
+                'Create Place',
+              ),
             ),
           ],
         ),
