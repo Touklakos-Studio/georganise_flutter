@@ -24,7 +24,8 @@ class ListPlacesPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView.builder(
-          itemCount: 10, // Replace with the actual number of PlaceCard you have
+          itemCount:
+              10, // TODO : Replace with the actual number of PlaceCard you have
           itemBuilder: (context, index) {
             return Column(
               children: [

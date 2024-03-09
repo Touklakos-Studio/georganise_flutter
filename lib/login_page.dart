@@ -22,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final response = await http.post(
         Uri.parse(
-            'https://jsonplaceholder.typicode.com/posts'), // API point to be replaced
+            'https://jsonplaceholder.typicode.com/posts'), // TODO : API point to be replaced
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _email,
