@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // For using jsonEncode
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,15 +15,39 @@ class _RegisterPageState extends State<RegisterPage> {
   String _email = '';
   String _password = '';
   String _confirmPassword = '';
+  String?
+      _errorMessage; // Define the _errorMessage variable as a nullable string
 
-  void _tryRegister() {
+  void _tryRegister() async {
     final isValid = _formKey.currentState?.validate();
     if (isValid == true) {
-      // Implement your registration logic here
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+      _formKey.currentState?.save();
+
+      final response = await http.post(
+        Uri.parse('https://jsonplaceholder.typicode.com/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _email,
+          'password': _password,
+          'confirm_password': _confirmPassword,
+        }),
       );
+
+      if (response.statusCode == 201) {
+        debugPrint('Registration successful');
+        debugPrint('Response body: ${response.body}');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        debugPrint('Registration failed');
+        debugPrint('Response status: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred')),
+        );
+      }
     }
   }
 
@@ -95,6 +121,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 onSaved: (value) => _confirmPassword = value!,
               ),
               const SizedBox(height: 32),
+              if (_errorMessage != null)
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                ),
               FloatingActionButton(
                 backgroundColor: Colors.white,
                 onPressed: _tryRegister,
