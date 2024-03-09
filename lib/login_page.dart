@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // For using jsonEncode
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,14 +15,36 @@ class _LoginPageState extends State<LoginPage> {
   String _email = '';
   String _password = '';
 
-  void _tryLogin() {
+  void _tryLogin() async {
     final isValid = _formKey.currentState?.validate();
     if (isValid == true) {
-      // Implement your login logic here
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+      _formKey.currentState?.save();
+
+      final response = await http.post(
+        Uri.parse(
+            'https://jsonplaceholder.typicode.com/posts'), // API point to be replaced
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _email,
+          'password': _password,
+        }),
       );
+
+      if (response.statusCode == 201) {
+        debugPrint('Login successful');
+        debugPrint('Response body: ${response.body}');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        debugPrint('Login failed');
+        debugPrint('Response status: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred')),
+        );
+      }
     }
   }
 
