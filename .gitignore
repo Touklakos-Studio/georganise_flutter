@@ -70,6 +70,9 @@ linux/Flutter/ephemeral/
 *.zip
 *.rar
 
+# Pubspec files
+build/
+
 # pubspec.lock files should not be ignored for library packages.
 # Uncomment the following line if this is an application.
 # pubspec.lock
