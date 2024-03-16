@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'place.dart'; // Ensure this matches your file structure
+import 'place.dart'; // Make sure this import path matches your file structure
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
+import 'dart:typed_data';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
@@ -17,6 +18,53 @@ class PlaceCard extends StatefulWidget {
 class _PlaceCardState extends State<PlaceCard> {
   bool _showUsername = false;
   String? _userName;
+  Uint8List? _imageData;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchImage();
+    // Call to fetch user name removed from initState since it should be triggered by a button press
+  }
+
+  Future<void> _fetchImage() async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null || !mounted) {
+      debugPrint("Auth token is null or widget is unmounted");
+      return;
+    }
+
+    try {
+      String baseUrl = GlobalConfig().serverUrl;
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/image/${widget.place.imageId}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+
+      if (response.statusCode == 200 && mounted) {
+        final data = json.decode(response.body);
+        setState(() {
+          final String? imageDataString = data['imageValue'];
+          if (imageDataString != null) {
+            _imageData = base64Decode(imageDataString);
+          } else {
+            debugPrint("Image data is null");
+          }
+        });
+      } else if (!mounted) {
+        debugPrint('Widget unmounted before request completion');
+      } else {
+        debugPrint('Failed to fetch image: ${response.body}');
+      }
+    } catch (e) {
+      if (mounted) {
+        debugPrint('Error fetching image: $e');
+      }
+    }
+  }
 
   Future<String?> _fetchUserName(int userId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
@@ -38,7 +86,7 @@ class _PlaceCardState extends State<PlaceCard> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data[
-            'nickname']; // Assuming the key for the user's name is 'nickname'
+            'nickname']; // Assuming 'nickname' is the key for the username
       } else {
         debugPrint('Failed to fetch user name: ${response.body}');
         return 'Failed to fetch user name';
@@ -51,10 +99,6 @@ class _PlaceCardState extends State<PlaceCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Assuming `tags` might not be directly available as `List<String>` anymore
-    // and considering they might need fetching or are complex objects now,
-    // the tags display logic might need adjustment or removal if not applicable.
-
     return Card(
       margin: EdgeInsets.all(8.0),
       child: Padding(
@@ -62,32 +106,26 @@ class _PlaceCardState extends State<PlaceCard> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            if (_imageData != null)
+              Container(
+                width: double.infinity,
+                height: 200, // Adjust the size according to your needs
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: MemoryImage(_imageData!),
+                  ),
+                ),
+              ),
             ListTile(
-              leading: Icon(
-                  Icons.location_on), // Optional: Add an icon to the list tile
-              title: Text(widget.place.name), // Updated to `name`
+              leading: Icon(Icons.location_on),
+              title: Text(widget.place.name),
               subtitle: Text(
                 "${widget.place.description}\nLat: ${widget.place.latitude}, Long: ${widget.place.longitude}",
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            // Display tags if applicable
-            // If place.placeTags is not a simple list of strings, this section might need rework
-            if (widget.place.placeTags != null &&
-                widget.place.placeTags.isNotEmpty) // Checking if tags exist
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Wrap(
-                  spacing: 8.0,
-                  children: widget.place.placeTags
-                      .map((tag) => Chip(
-                            label: Text(tag
-                                .toString()), // Assuming tag can be converted to a string
-                          ))
-                      .toList(),
-                ),
-              ),
             ButtonBar(
               alignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -112,17 +150,17 @@ class _PlaceCardState extends State<PlaceCard> {
                           _showUsername = !_showUsername;
                         });
                         if (_showUsername && _userName == null) {
-                          _userName = await _fetchUserName(widget.place.userId);
-                          if (_userName == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text('Failed to fetch username')),
-                            );
+                          String? name =
+                              await _fetchUserName(widget.place.userId);
+                          if (mounted) {
+                            setState(() {
+                              _userName = name;
+                            });
                           }
                         }
                       },
                     ),
-                    if (_showUsername && _userName != null) Text('$_userName'),
+                    if (_showUsername && _userName != null) Text(_userName!),
                   ],
                 ),
               ],
