@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
+import 'tags_page.dart';
 
 class CreatePlacePage extends StatefulWidget {
   final LatLng position;
@@ -20,6 +21,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   File? _image; // For storing the picked image file
+  List<int> _selectedTagIds = [];
 
   // Function to handle image picking
   Future<void> _pickImage() async {
@@ -29,6 +31,22 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _selectTags() async {
+    final selectedTagIds = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TagsPage(initialSelectedTagIds: _selectedTagIds),
+      ),
+    );
+
+    // Check if 'selectedTagIds' is not null to prevent overwriting with null
+    if (selectedTagIds != null) {
+      setState(() {
+        _selectedTagIds = List.from(selectedTagIds);
       });
     }
   }
@@ -49,7 +67,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     request.fields['description'] = _descriptionController.text;
     request.fields['latitude'] = widget.position.latitude.toString();
     request.fields['longitude'] = widget.position.longitude.toString();
-    request.fields['tagIds'] = json.encode(tagIds);
+    request.fields['tagIds'] = json.encode(_selectedTagIds);
 
     // Add the image file to the request, if it exists
     if (_image != null) {
@@ -133,13 +151,31 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
               ),
             ),
             SizedBox(height: 16),
-            TextField(
-              controller: _tagsController,
-              decoration: InputDecoration(
-                labelText: 'Tags',
-                fillColor: Colors.white,
-                filled: true,
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: _selectedTagIds.map((tagId) {
+                return Chip(
+                  label: Text(
+                      'Tag $tagId'), // Replace this with the actual tag title
+                  deleteIcon: Icon(Icons.cancel),
+                  onDeleted: () {
+                    setState(() {
+                      _selectedTagIds.remove(tagId);
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _selectTags,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green,
               ),
+              icon: Icon(Icons.add),
+              label: Text('Add a tag'),
             ),
             SizedBox(height: 16),
             GestureDetector(
