@@ -3,6 +3,7 @@ import 'place.dart'; // Ensure this matches your file structure
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'secure_storage_manager.dart';
+import 'global_config.dart';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
@@ -25,8 +26,9 @@ class _PlaceCardState extends State<PlaceCard> {
     }
 
     try {
+      String baseUrl = GlobalConfig().serverUrl;
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/api/user/$userId'),
+        Uri.parse('$baseUrl/api/user/$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Cookie': 'authToken=$authToken',

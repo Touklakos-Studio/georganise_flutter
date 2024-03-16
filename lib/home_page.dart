@@ -10,6 +10,7 @@ import 'add_place_page.dart';
 import 'package:http/http.dart' as http;
 import 'place.dart';
 import 'dart:convert'; // For using jsonEncode
+import 'global_config.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -41,9 +42,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int?> _fetchUserId() async {
+    String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/user/me'),
+      Uri.parse('$baseUrl/api/user/me'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',
@@ -60,9 +62,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchPlaces(int userId) async {
+    String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/place/user/$userId'),
+      Uri.parse('$baseUrl/api/place/user/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',
@@ -142,12 +145,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _logoutUser() async {
     try {
+      String baseUrl = GlobalConfig().serverUrl;
       // Attempt to retrieve the authToken from secure storage
       String? authToken = await SecureStorageManager.getAuthToken();
 
       // Make the POST request to logout the user on the backend
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8080/api/user/logout'),
+        Uri.parse('$baseUrl/api/user/logout'),
         headers: {
           'Content-Type': 'application/json',
           'Cookie': 'authToken=$authToken',

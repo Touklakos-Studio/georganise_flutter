@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'secure_storage_manager.dart';
 import 'create_place_page.dart';
 import 'package:latlong2/latlong.dart';
+import 'global_config.dart';
 
 class ImagesPage extends StatefulWidget {
   final LatLng position;
@@ -34,9 +35,10 @@ class _ImagesPageState extends State<ImagesPage> {
 
   Future<void> _fetchImages() async {
     try {
+      String baseUrl = GlobalConfig().serverUrl;
       String? authToken = await SecureStorageManager.getAuthToken();
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/api/image'),
+        Uri.parse('$baseUrl/api/image'),
         headers: {'Cookie': 'authToken=$authToken'},
       );
 
@@ -78,13 +80,15 @@ class _ImagesPageState extends State<ImagesPage> {
     }
 
     try {
+      String baseUrl = GlobalConfig().serverUrl;
+
       String? authToken = await SecureStorageManager.getAuthToken();
 
       List<int> imageBytes = await _imageFile!.readAsBytesSync();
       String base64Image = base64Encode(imageBytes);
 
-      var request = http.MultipartRequest(
-          'POST', Uri.parse('http://10.0.2.2:8080/api/image'));
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl/api/image'));
       request.headers['Cookie'] = 'authToken=$authToken';
       request.fields['name'] = _imageTitleController.text;
       request.fields['description'] = _imageDescriptionController.text;

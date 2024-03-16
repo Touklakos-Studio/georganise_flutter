@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'global_config.dart';
 // Add any other imports needed for this page
 
 class ServerURLPage extends StatefulWidget {
@@ -9,9 +10,12 @@ class ServerURLPage extends StatefulWidget {
 }
 
 class _ServerURLPageState extends State<ServerURLPage> {
+  String baseUrl = GlobalConfig().serverUrl;
   // Create a text controller and use it to set the initial value
-  final TextEditingController _controller =
-      TextEditingController(text: "http://localhost:8080");
+  final TextEditingController _controller;
+
+  _ServerURLPageState()
+      : _controller = TextEditingController(text: GlobalConfig().serverUrl);
 
   @override
   void dispose() {
@@ -69,8 +73,8 @@ class _ServerURLPageState extends State<ServerURLPage> {
             FloatingActionButton(
               backgroundColor: Colors.white,
               onPressed: () {
-                // Implement your logic to handle server URL submission
-                // For example, you might save the value to a server or app settings
+                // Save the server URL to the global configuration
+                GlobalConfig().serverUrl = _controller.text;
                 Navigator.of(context).pop();
               },
               child: const Icon(Icons.arrow_forward, color: Colors.green),

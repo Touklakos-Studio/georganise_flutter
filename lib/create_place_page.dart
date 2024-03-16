@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'tags_page.dart';
 import 'images_page.dart';
 import 'secure_storage_manager.dart';
+import 'global_config.dart';
 
 class CreatePlacePage extends StatefulWidget {
   final LatLng position; // Make position optional
@@ -65,7 +66,8 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
       return null;
     }
 
-    var url = Uri.parse('http://10.0.2.2:8080/api/place');
+    String baseUrl = GlobalConfig().serverUrl;
+    var url = Uri.parse('$baseUrl/api/place');
 
     Map<String, dynamic> requestBody = {
       "name": _titleController.text,

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'secure_storage_manager.dart'; // Make sure this matches your implementation
 import 'place.dart';
 import 'place_card.dart';
+import 'global_config.dart';
 
 class ListPlacesPage extends StatefulWidget {
   @override
@@ -20,11 +21,13 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     _fetchUserIdAndPlaces();
   }
 
+  String baseUrl = GlobalConfig().serverUrl;
+
   Future<int?> _fetchUserId() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     debugPrint('AuthToken : $authToken');
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/user/me'),
+      Uri.parse('$baseUrl/api/user/me'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',
@@ -43,7 +46,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   Future<void> _fetchPlaces(int userId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/place/user/$userId'),
+      Uri.parse('$baseUrl/api/place/user/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',

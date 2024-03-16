@@ -3,6 +3,7 @@ import 'home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For using jsonEncode
 import 'secure_storage_manager.dart';
+import 'global_config.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -19,54 +20,67 @@ class _RegisterPageState extends State<RegisterPage> {
   String?
       _errorMessage; // Define the _errorMessage variable as a nullable string
 
+  String baseUrl = GlobalConfig().serverUrl;
+
   void _tryRegister() async {
     final isValid = _formKey.currentState?.validate();
     if (isValid == true) {
       _formKey.currentState?.save();
 
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:8080/api/user'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'nickname': _nickname,
-          'email': _email,
-          'password': _password,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        debugPrint('Registration successful');
-
-        // Extract the authToken from the Set-Cookie header
-        final String? rawCookie = response.headers['set-cookie'];
-        String? authToken;
-        if (rawCookie != null) {
-          // Here we look for the specific cookie named 'authToken', adjust if your token has a different name
-          final RegExp regex = RegExp(r'authToken=([^;]+)');
-          final match = regex.firstMatch(rawCookie);
-          authToken = match?.group(1); // Extract the authToken value
-        }
-
-        // Check if authToken is successfully extracted
-        if (authToken != null && authToken.isNotEmpty) {
-          await SecureStorageManager.storeAuthToken(authToken);
-          debugPrint('Auth token stored successfully');
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        } else {
-          debugPrint('No auth token found in the response cookies');
-          // Handle the scenario where the authToken is not found in the cookies
-        }
-      } else {
-        debugPrint('Registration failed');
-        debugPrint('Response status: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An error occurred')),
+      var response = null;
+      try {
+        response = await http.post(
+          Uri.parse('$baseUrl/api/user'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'nickname': _nickname,
+            'email': _email,
+            'password': _password,
+          }),
         );
+      } catch (e) {
+        debugPrint('Error registering: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('The server URL is invalid or unreachable')),
+        );
+      }
+
+      if (response != null) {
+        if (response.statusCode == 200) {
+          debugPrint('Registration successful');
+
+          // Extract the authToken from the Set-Cookie header
+          final String? rawCookie = response.headers['set-cookie'];
+          String? authToken;
+          if (rawCookie != null) {
+            // Here we look for the specific cookie named 'authToken', adjust if your token has a different name
+            final RegExp regex = RegExp(r'authToken=([^;]+)');
+            final match = regex.firstMatch(rawCookie);
+            authToken = match?.group(1); // Extract the authToken value
+          }
+
+          // Check if authToken is successfully extracted
+          if (authToken != null && authToken.isNotEmpty) {
+            await SecureStorageManager.storeAuthToken(authToken);
+            debugPrint('Auth token stored successfully');
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          } else {
+            debugPrint('No auth token found in the response cookies');
+            // Handle the scenario where the authToken is not found in the cookies
+          }
+        } else {
+          debugPrint('Registration failed');
+          debugPrint('Response status: ${response.statusCode}');
+          debugPrint('Response body: ${response.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('An error occurred')),
+          );
+        }
       }
     }
   }

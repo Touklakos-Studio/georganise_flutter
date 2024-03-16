@@ -3,6 +3,7 @@ import 'home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For using jsonEncode
 import 'secure_storage_manager.dart';
+import 'global_config.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,56 +18,68 @@ class _LoginPageState extends State<LoginPage> {
   String _password = '';
 
   void _tryLogin() async {
+    String baseUrl = GlobalConfig().serverUrl;
     final isValid = _formKey.currentState?.validate();
     if (isValid == true) {
       _formKey.currentState?.save();
 
-      final response = await http.post(
-        Uri.parse(
-            'http://10.0.2.2:8080/api/user/login'), // TODO: API point to be replaced
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': _email,
-          'password': _password,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        debugPrint('Login successful');
-
-        // Extract cookies from response headers
-        final String? rawCookie = response.headers['set-cookie'];
-        String? authToken;
-        if (rawCookie != null) {
-          // Assuming the cookie format is "authToken=tokenValue; Path=/; Expires=..."
-          final int index = rawCookie.indexOf(';');
-          authToken = (index == -1) ? rawCookie : rawCookie.substring(0, index);
-          // Further extract authToken value if necessary
-          if (authToken.startsWith('authToken=')) {
-            authToken =
-                authToken.substring('authToken='.length, authToken.length);
-          }
-        }
-
-        // Check if authToken is extracted successfully
-        if (authToken != null && authToken.isNotEmpty) {
-          await SecureStorageManager.storeAuthToken(authToken);
-          debugPrint('Auth token stored successfully');
-        } else {
-          debugPrint('No auth token found in the response cookies');
-        }
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+      var response = null;
+      try {
+        response = await http.post(
+          Uri.parse('$baseUrl/api/user/login'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': _email,
+            'password': _password,
+          }),
         );
-      } else {
-        debugPrint('Login failed');
-        debugPrint('Response status: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
+      } catch (e) {
+        debugPrint('Error logging in: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An error occurred')),
+          const SnackBar(
+              content: Text('The server URL is invalid or unreachable')),
         );
+      }
+
+      if (response != null) {
+        if (response.statusCode == 200) {
+          debugPrint('Login successful');
+
+          // Extract cookies from response headers
+          final String? rawCookie = response.headers['set-cookie'];
+          String? authToken;
+          if (rawCookie != null) {
+            // Assuming the cookie format is "authToken=tokenValue; Path=/; Expires=..."
+            final int index = rawCookie.indexOf(';');
+            authToken =
+                (index == -1) ? rawCookie : rawCookie.substring(0, index);
+            // Further extract authToken value if necessary
+            if (authToken.startsWith('authToken=')) {
+              authToken =
+                  authToken.substring('authToken='.length, authToken.length);
+            }
+          }
+
+          // Check if authToken is extracted successfully
+          if (authToken != null && authToken.isNotEmpty) {
+            await SecureStorageManager.storeAuthToken(authToken);
+            debugPrint('Auth token stored successfully');
+          } else {
+            debugPrint('No auth token found in the response cookies');
+          }
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          debugPrint('Login failed');
+          debugPrint('Response status: ${response.statusCode}');
+          debugPrint('Response body: ${response.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('An error occurred')),
+          );
+        }
       }
     }
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'secure_storage_manager.dart'; // Import the SecureStorageManager class
+import 'global_config.dart';
 
 class TagsPage extends StatefulWidget {
   final List<int> initialSelectedTagIds;
@@ -27,12 +28,14 @@ class _TagsPageState extends State<TagsPage> {
     _fetchTags();
   }
 
+  String baseUrl = GlobalConfig().serverUrl;
+
   Future<void> _fetchTags() async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/api/tag'),
+        Uri.parse('$baseUrl/api/tag'),
         headers: {
           'Cookie': 'authToken=$authToken', // Add the AuthToken as a cookie
         },
@@ -76,7 +79,7 @@ class _TagsPageState extends State<TagsPage> {
       String? authToken = await SecureStorageManager.getAuthToken();
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8080/api/tag'),
+        Uri.parse('$baseUrl/api/tag'),
         headers: {
           'Content-Type': 'application/json',
           'Cookie': 'authToken=$authToken',
