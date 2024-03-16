@@ -240,10 +240,11 @@ class _HomePageState extends State<HomePage> {
       options: MapOptions(
         initialCenter: LatLng(45.7032695, 3.3448536),
         initialZoom: 8,
-        interactionOptions:
-            const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom),
-        onTap: (tapPosition, latLng) async {
+        interactiveFlags: InteractiveFlag.pinchZoom |
+            InteractiveFlag.drag, // Enable pinch zoom and drag
+        onTap: (_, latLng) async {
           if (_isDoubleTap) {
+            // Double tap detected, proceed with creating a place
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
@@ -254,21 +255,20 @@ class _HomePageState extends State<HomePage> {
             );
 
             if (result != null && result == true) {
-              // Only refetch places if the result is explicitly true.
-              _fetchUserIdAndPlaces();
+              _fetchUserIdAndPlaces(); // Refresh markers if a new place was successfully created
             } else if (result == false) {
-              // Handle the case where the marker creation was not successful.
               setState(() {
-                _markers.removeLast();
+                _markers
+                    .removeLast(); // Remove temporary marker if place creation was cancelled
               });
             }
 
             _isDoubleTap = false;
           } else {
+            // First tap detected, start timer to wait for a second tap
             _isDoubleTap = true;
-            Future.delayed(const Duration(milliseconds: 300), () {
-              _isDoubleTap = false;
-            });
+            await Future.delayed(const Duration(milliseconds: 300));
+            _isDoubleTap = false;
           }
         },
       ),
