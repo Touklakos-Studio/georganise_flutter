@@ -7,6 +7,7 @@ import 'settings_page.dart';
 import 'welcome_page.dart';
 import 'secure_storage_manager.dart';
 import 'add_place_page.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +20,42 @@ class _HomePageState extends State<HomePage> {
   final MapController _mapController = MapController();
   final List<Marker> _markers = [];
   bool _isDoubleTap = false; // Declare the _isDoubleTap variable
+
+  Future<void> _logoutUser() async {
+    try {
+      // Attempt to retrieve the authToken from secure storage
+      String? authToken = await SecureStorageManager.getAuthToken();
+
+      // Make the POST request to logout the user on the backend
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/api/user/logout'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+
+      // Check the response status code
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        debugPrint('Logout successful on backend');
+      } else {
+        debugPrint(
+            'Failed to logout on backend. Status code: ${response.statusCode}');
+      }
+
+      // Regardless of the response, clear the authToken from secure storage
+      await SecureStorageManager.deleteAuthToken();
+      debugPrint('Auth token deleted successfully from local storage');
+
+      // Navigate to the WelcomePage and remove all previous routes
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const WelcomePage()),
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      debugPrint('An error occurred during logout: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,17 +100,7 @@ class _HomePageState extends State<HomePage> {
             ),
             IconButton(
               icon: Icon(Icons.exit_to_app, color: Colors.white),
-              onPressed: () async {
-                // Call deleteAuthToken to remove the stored authentication token
-                await SecureStorageManager.deleteAuthToken();
-                debugPrint('Auth token deleted successfully');
-
-                // Navigate to the WelcomePage and remove all previous routes
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const WelcomePage()),
-                  (Route<dynamic> route) => false,
-                );
-              },
+              onPressed: _logoutUser, // Updated to use _logoutUser
             ),
           ],
         ),
