@@ -143,7 +143,13 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Images'),
+        title: Text(
+          'Images',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -191,7 +197,8 @@ class _ImagesPageState extends State<ImagesPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                 ),
-                child: Text('Pick Image'),
+                child:
+                    Text('Pick Image', style: TextStyle(color: Colors.white)),
               ),
               SizedBox(height: 16),
               if (_imageFile != null)
@@ -200,7 +207,7 @@ class _ImagesPageState extends State<ImagesPage> {
                         height: 200,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(color: Colors.green),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Image.file(
@@ -215,7 +222,7 @@ class _ImagesPageState extends State<ImagesPage> {
                   child: ElevatedButton(
                     onPressed: _createImage,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.green,
                     ),
                     child: Text('Upload Image'),
                   ),
