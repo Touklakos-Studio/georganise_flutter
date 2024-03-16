@@ -6,6 +6,7 @@ import 'list_places_page.dart';
 import 'settings_page.dart';
 import 'welcome_page.dart';
 import 'secure_storage_manager.dart';
+import 'add_place_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,6 +33,16 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
+            IconButton(
+              icon:
+                  Icon(Icons.add, color: Colors.white), // Add the "Plus" button
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddPlacePage()),
+                );
+              },
+            ),
             IconButton(
               icon: Icon(Icons.menu, color: Colors.white),
               onPressed: () {
