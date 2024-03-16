@@ -1,7 +1,34 @@
 class Place {
-  final String title;
+  final int placeId;
+  final double latitude;
+  final double longitude;
+  final String name;
   final String description;
-  final List<String> tags;
+  final int imageId;
+  final int userId;
+  final List<dynamic> placeTags;
 
-  Place({required this.title, required this.description, required this.tags});
+  Place({
+    required this.placeId,
+    required this.latitude,
+    required this.longitude,
+    required this.name,
+    required this.description,
+    required this.imageId,
+    required this.userId,
+    required this.placeTags,
+  });
+
+  factory Place.fromJson(Map<String, dynamic> json) {
+    return Place(
+      placeId: json['placeId'],
+      latitude: json['latitude'],
+      longitude: json['longitude'],
+      name: json['name'],
+      description: json['description'],
+      imageId: json['imageId'],
+      userId: json['userId'],
+      placeTags: json['placeTags'] ?? [], // Assuming placeTags is optional
+    );
+  }
 }

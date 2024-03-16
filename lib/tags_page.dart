@@ -111,7 +111,13 @@ class _TagsPageState extends State<TagsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Tags'),
+        title: Text(
+          'Create Place',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green,
       ),
       body: Column(
         children: [
@@ -185,7 +191,8 @@ class _TagsPageState extends State<TagsPage> {
         onPressed: () {
           Navigator.pop(context, _selectedTagIds);
         },
-        child: Icon(Icons.check),
+        backgroundColor: Colors.green,
+        child: Icon(Icons.check, color: Colors.white),
       ),
     );
   }

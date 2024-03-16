@@ -8,6 +8,10 @@ class PlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Assuming `tags` might not be directly available as `List<String>` anymore
+    // and considering they might need fetching or are complex objects now,
+    // the tags display logic might need adjustment or removal if not applicable.
+
     return Card(
       margin: EdgeInsets.all(8.0),
       child: Padding(
@@ -16,24 +20,31 @@ class PlaceCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ListTile(
-              title: Text(place.title),
+              leading: Icon(
+                  Icons.location_on), // Optional: Add an icon to the list tile
+              title: Text(place.name), // Updated to `name`
               subtitle: Text(
-                place.description,
-                maxLines: 2,
+                "${place.description}\nLat: ${place.latitude}, Long: ${place.longitude}",
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Wrap(
-                spacing: 8.0,
-                children: place.tags
-                    .map((tag) => Chip(
-                          label: Text(tag),
-                        ))
-                    .toList(),
+            // Display tags if applicable
+            // If place.placeTags is not a simple list of strings, this section might need rework
+            if (place.placeTags != null &&
+                place.placeTags.isNotEmpty) // Checking if tags exist
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Wrap(
+                  spacing: 8.0,
+                  children: place.placeTags
+                      .map((tag) => Chip(
+                            label: Text(tag
+                                .toString()), // Assuming tag can be converted to a string
+                          ))
+                      .toList(),
+                ),
               ),
-            ),
             ButtonBar(
               alignment: MainAxisAlignment.center,
               children: <Widget>[
