@@ -8,6 +8,8 @@ import 'welcome_page.dart';
 import 'secure_storage_manager.dart';
 import 'add_place_page.dart';
 import 'package:http/http.dart' as http;
+import 'place.dart';
+import 'dart:convert'; // For using jsonEncode
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,7 +21,123 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final MapController _mapController = MapController();
   final List<Marker> _markers = [];
-  bool _isDoubleTap = false; // Declare the _isDoubleTap variable
+  bool _isDoubleTap = false;
+  List<Place> _places = [];
+  bool _isLoading = true;
+
+  Future<void> _fetchUserIdAndPlaces() async {
+    try {
+      final int? userId = await _fetchUserId();
+      if (userId != null) {
+        await _fetchPlaces(userId);
+      } else {
+        debugPrint('User ID is null.');
+      }
+    } catch (e) {
+      debugPrint('Error fetching places: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<int?> _fetchUserId() async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8080/api/user/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['userId'];
+    } else {
+      debugPrint('Failed to fetch user ID: ${response.body}');
+      return null;
+    }
+  }
+
+  Future<void> _fetchPlaces(int userId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8080/api/place/user/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        debugPrint('Fetched places: $data'); // Add this line
+        _places = data.map((placeData) => Place.fromJson(placeData)).toList();
+        _isLoading = false;
+        _markers.addAll(_convertPlacesToMarkers(_places));
+      });
+    } else {
+      debugPrint('Failed to fetch places: ${response.body}');
+      throw Exception('Failed to fetch places');
+    }
+  }
+
+  List<Marker> _convertPlacesToMarkers(List<Place> places) {
+    return places.map((place) {
+      debugPrint(
+          'Place latitude: ${place.latitude}, longitude: ${place.longitude}');
+      return Marker(
+        point: LatLng(place.latitude, place.longitude),
+        width: 80.0,
+        height: 80.0,
+        child: IconButton(
+          icon: Icon(Icons.location_pin),
+          iconSize: 60,
+          color: Colors.red,
+          onPressed: () {
+            _showPlaceDetails(place);
+          },
+        ),
+      );
+    }).toList();
+  }
+
+  void _showPlaceDetails(Place place) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(place.name),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(place.description),
+              SizedBox(height: 8),
+              Text(
+                'Tags: ${place.placeTags.join(', ')}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserIdAndPlaces();
+  }
 
   Future<void> _logoutUser() async {
     try {
@@ -112,7 +230,7 @@ class _HomePageState extends State<HomePage> {
     return FlutterMap(
       mapController: _mapController,
       options: MapOptions(
-        initialCenter: LatLng(51.5, -0.09),
+        initialCenter: LatLng(30, -158),
         initialZoom: 11,
         interactionOptions:
             const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom),
