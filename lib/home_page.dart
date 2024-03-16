@@ -238,8 +238,8 @@ class _HomePageState extends State<HomePage> {
     return FlutterMap(
       mapController: _mapController,
       options: MapOptions(
-        initialCenter: LatLng(30, -158),
-        initialZoom: 11,
+        initialCenter: LatLng(45.7032695, 3.3448536),
+        initialZoom: 8,
         interactionOptions:
             const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom),
         onTap: (tapPosition, latLng) async {
