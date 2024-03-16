@@ -5,6 +5,7 @@ import 'create_place_page.dart';
 import 'list_places_page.dart';
 import 'settings_page.dart';
 import 'welcome_page.dart';
+import 'secure_storage_manager.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,9 +65,12 @@ class _HomePageState extends State<HomePage> {
             ),
             IconButton(
               icon: Icon(Icons.exit_to_app, color: Colors.white),
-              onPressed: () {
-                // Assuming you want to go back to the WelcomePage and remove all the previous routes (e.g., login or main page),
-                // so that the user can't navigate back to the main page after logging out.
+              onPressed: () async {
+                // Call deleteAuthToken to remove the stored authentication token
+                await SecureStorageManager.deleteAuthToken();
+                debugPrint('Auth token deleted successfully');
+
+                // Navigate to the WelcomePage and remove all previous routes
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const WelcomePage()),
                   (Route<dynamic> route) => false,

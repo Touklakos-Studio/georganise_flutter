@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For using jsonEncode
+import 'secure_storage_manager.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final response = await http.post(
         Uri.parse(
-            'https://jsonplaceholder.typicode.com/posts'), // TODO : API point to be replaced
+            'http://10.0.2.2:8080/api/user/login'), // TODO: API point to be replaced
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _email,
@@ -30,9 +31,31 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         debugPrint('Login successful');
-        debugPrint('Response body: ${response.body}');
+
+        // Extract cookies from response headers
+        final String? rawCookie = response.headers['set-cookie'];
+        String? authToken;
+        if (rawCookie != null) {
+          // Assuming the cookie format is "authToken=tokenValue; Path=/; Expires=..."
+          final int index = rawCookie.indexOf(';');
+          authToken = (index == -1) ? rawCookie : rawCookie.substring(0, index);
+          // Further extract authToken value if necessary
+          if (authToken.startsWith('authToken=')) {
+            authToken =
+                authToken.substring('authToken='.length, authToken.length);
+          }
+        }
+
+        // Check if authToken is extracted successfully
+        if (authToken != null && authToken.isNotEmpty) {
+          await SecureStorageManager.storeAuthToken(authToken);
+          debugPrint('Auth token stored successfully');
+        } else {
+          debugPrint('No auth token found in the response cookies');
+        }
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
