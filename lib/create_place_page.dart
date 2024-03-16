@@ -6,11 +6,14 @@ import 'dart:async';
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
 import 'tags_page.dart';
+import 'images_page.dart';
+import 'secure_storage_manager.dart';
 
 class CreatePlacePage extends StatefulWidget {
-  final LatLng position;
+  final LatLng position; // Make position optional
+  final int? selectedImageId;
 
-  const CreatePlacePage({required this.position});
+  const CreatePlacePage({required this.position, this.selectedImageId});
 
   @override
   _CreatePlacePageState createState() => _CreatePlacePageState();
@@ -21,16 +24,20 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   File? _image; // For storing the picked image file
-  List<int> _selectedTagIds = [];
+  int? _selectedImageId;
+  List<int> _selectedTagIds = []; // Add this line to define _selectedTagIds
 
   // Function to handle image picking
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final selectedImageId = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => ImagesPage(position: widget.position)),
+    );
 
-    if (pickedFile != null) {
+    if (selectedImageId != null) {
       setState(() {
-        _image = File(pickedFile.path);
+        _selectedImageId = selectedImageId;
       });
     }
   }
@@ -51,44 +58,44 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     }
   }
 
-  Future<void> _sendPlaceData() async {
-    // Parse the user-entered tags
-    List<int> tagIds = _tagsController.text
-        .split(',')
-        .map((tag) => int.tryParse(tag.trim()) ?? 0)
-        .toList();
+  Future<void> _sendPlaceData(List<int> selectedTagIds) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      return null;
+    }
 
     var url = Uri.parse('http://10.0.2.2:8080/api/place');
 
-    var request = http.MultipartRequest('POST', url);
+    Map<String, dynamic> requestBody = {
+      "name": _titleController.text,
+      "description": _descriptionController.text,
+      "latitude": widget.position.latitude,
+      "longitude": widget.position.longitude,
+      "tagIds": selectedTagIds,
+    };
 
-    // Add the other fields to the request
-    request.fields['name'] = _titleController.text;
-    request.fields['description'] = _descriptionController.text;
-    request.fields['latitude'] = widget.position.latitude.toString();
-    request.fields['longitude'] = widget.position.longitude.toString();
-    request.fields['tagIds'] = json.encode(_selectedTagIds);
-
-    // Add the image file to the request, if it exists
-    if (_image != null) {
-      var imageStream =
-          http.ByteStream(Stream.fromIterable([_image!.readAsBytesSync()]));
-      var imageLength = await _image!.length();
-      request.files.add(http.MultipartFile('image', imageStream, imageLength,
-          filename: _image!.path.split('/').last));
+    if (_selectedImageId != null) {
+      requestBody["imageId"] = _selectedImageId;
     }
 
-    // Send the request
-    var response = await request.send();
+    var response = await http.post(
+      url,
+      body: json.encode(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       debugPrint('Place created successfully');
-      final resBody = await response.stream.bytesToString();
+      final resBody = json.decode(response.body);
       debugPrint('Response status code: ${response.statusCode}');
       debugPrint('Response body: $resBody');
       Navigator.pop(context, true); // Or navigate as needed
     } else {
-      final resBody = await response.stream.bytesToString();
+      final resBody = json.decode(response.body);
       debugPrint('Failed to create place');
       debugPrint('Response status code: ${response.statusCode}');
       debugPrint('Response body: $resBody');
@@ -178,27 +185,25 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
               label: Text('Add a tag'),
             ),
             SizedBox(height: 16),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  image: _image != null
-                      ? DecorationImage(
-                          image: FileImage(_image!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: _image == null
-                    ? Center(child: Icon(Icons.image, size: 50))
-                    : null,
+            ElevatedButton(
+              onPressed: _pickImage,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_selectedImageId != null)
+                    Text('Selected image ID: $_selectedImageId')
+                  else
+                    Text('Pick Image'),
+                ],
               ),
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _sendPlaceData,
+              onPressed: () => _sendPlaceData(_selectedTagIds),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
