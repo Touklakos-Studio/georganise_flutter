@@ -1,10 +1,51 @@
 import 'package:flutter/material.dart';
 import 'place.dart'; // Ensure this matches your file structure
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'secure_storage_manager.dart';
 
-class PlaceCard extends StatelessWidget {
+class PlaceCard extends StatefulWidget {
   final Place place;
 
   PlaceCard({required this.place});
+
+  @override
+  _PlaceCardState createState() => _PlaceCardState();
+}
+
+class _PlaceCardState extends State<PlaceCard> {
+  bool _showUsername = false;
+  String? _userName;
+
+  Future<String?> _fetchUserName(int userId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/user/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data[
+            'nickname']; // Assuming the key for the user's name is 'nickname'
+      } else {
+        debugPrint('Failed to fetch user name: ${response.body}');
+        return 'Failed to fetch user name';
+      }
+    } catch (e) {
+      debugPrint('Error fetching user name: $e');
+      return 'Error occurred';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,22 +63,22 @@ class PlaceCard extends StatelessWidget {
             ListTile(
               leading: Icon(
                   Icons.location_on), // Optional: Add an icon to the list tile
-              title: Text(place.name), // Updated to `name`
+              title: Text(widget.place.name), // Updated to `name`
               subtitle: Text(
-                "${place.description}\nLat: ${place.latitude}, Long: ${place.longitude}",
+                "${widget.place.description}\nLat: ${widget.place.latitude}, Long: ${widget.place.longitude}",
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             // Display tags if applicable
             // If place.placeTags is not a simple list of strings, this section might need rework
-            if (place.placeTags != null &&
-                place.placeTags.isNotEmpty) // Checking if tags exist
+            if (widget.place.placeTags != null &&
+                widget.place.placeTags.isNotEmpty) // Checking if tags exist
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Wrap(
                   spacing: 8.0,
-                  children: place.placeTags
+                  children: widget.place.placeTags
                       .map((tag) => Chip(
                             label: Text(tag
                                 .toString()), // Assuming tag can be converted to a string
@@ -60,11 +101,27 @@ class PlaceCard extends StatelessWidget {
                     // Implement download/export functionality
                   },
                 ),
-                IconButton(
-                  icon: Icon(Icons.person),
-                  onPressed: () {
-                    // Implement view owner functionality
-                  },
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.person),
+                      onPressed: () async {
+                        setState(() {
+                          _showUsername = !_showUsername;
+                        });
+                        if (_showUsername && _userName == null) {
+                          _userName = await _fetchUserName(widget.place.userId);
+                          if (_userName == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Failed to fetch username')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                    if (_showUsername && _userName != null) Text('$_userName'),
+                  ],
                 ),
               ],
             ),
