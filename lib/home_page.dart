@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
       final int? userId = await _fetchUserId();
       if (userId != null) {
         await _fetchPlaces(userId);
+        debugPrint('Fetched places successfully!');
       } else {
         debugPrint('User ID is null.');
       }
@@ -87,18 +88,18 @@ class _HomePageState extends State<HomePage> {
       debugPrint(
           'Place latitude: ${place.latitude}, longitude: ${place.longitude}');
       return Marker(
-        point: LatLng(place.latitude, place.longitude),
-        width: 80.0,
-        height: 80.0,
-        child: IconButton(
-          icon: Icon(Icons.location_pin),
-          iconSize: 60,
-          color: Colors.red,
-          onPressed: () {
-            _showPlaceDetails(place);
-          },
-        ),
-      );
+          point: LatLng(place.latitude, place.longitude),
+          width: 80.0,
+          height: 80.0,
+          child: IconButton(
+            icon: Icon(Icons.location_pin),
+            iconSize: 60,
+            color: Colors.red,
+            onPressed: () {
+              debugPrint('Marker tapped!');
+              _showPlaceDetails(place);
+            },
+          ));
     }).toList();
   }
 
@@ -195,7 +196,14 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => AddPlacePage()),
-                );
+                ).then((value) {
+                  // Check if the value is true, indicating a successful place creation
+                  debugPrint("Returned from AddPlacePage with value: $value");
+                  if (value == true) {
+                    // Refresh places and markers on the map
+                    _fetchUserIdAndPlaces();
+                  }
+                });
               },
             ),
             IconButton(
@@ -236,23 +244,6 @@ class _HomePageState extends State<HomePage> {
             const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom),
         onTap: (tapPosition, latLng) async {
           if (_isDoubleTap) {
-            setState(() {
-              _markers.add(
-                Marker(
-                  point: latLng,
-                  width: 80.0,
-                  height: 80.0,
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: Icon(Icons.location_pin),
-                    iconSize: 60,
-                    color: Colors.red,
-                    onPressed: () {},
-                  ),
-                ),
-              );
-            });
-
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
@@ -262,7 +253,11 @@ class _HomePageState extends State<HomePage> {
               ),
             );
 
-            if (result == false) {
+            if (result != null && result == true) {
+              // Only refetch places if the result is explicitly true.
+              _fetchUserIdAndPlaces();
+            } else if (result == false) {
+              // Handle the case where the marker creation was not successful.
               setState(() {
                 _markers.removeLast();
               });
