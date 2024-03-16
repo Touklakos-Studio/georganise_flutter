@@ -15,13 +15,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  final MapController _mapController = MapController();
+  final List<Marker> _markers = [];
+  bool _isDoubleTap = false; // Declare the _isDoubleTap variable
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +32,6 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.add, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreatePlacePage()),
-                );
-              },
-            ),
             IconButton(
               icon: Icon(Icons.menu, color: Colors.white),
               onPressed: () {
@@ -85,29 +72,58 @@ class _HomePageState extends State<HomePage> {
 
   Widget content() {
     return FlutterMap(
+      mapController: _mapController,
       options: MapOptions(
         initialCenter: LatLng(51.5, -0.09),
         initialZoom: 11,
         interactionOptions:
             const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom),
+        onTap: (tapPosition, latLng) async {
+          if (_isDoubleTap) {
+            setState(() {
+              _markers.add(
+                Marker(
+                  point: latLng,
+                  width: 80.0,
+                  height: 80.0,
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: Icon(Icons.location_pin),
+                    iconSize: 60,
+                    color: Colors.red,
+                    onPressed: () {},
+                  ),
+                ),
+              );
+            });
+
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CreatePlacePage(
+                  position: latLng,
+                ),
+              ),
+            );
+
+            if (result == false) {
+              setState(() {
+                _markers.removeLast();
+              });
+            }
+
+            _isDoubleTap = false;
+          } else {
+            _isDoubleTap = true;
+            Future.delayed(const Duration(milliseconds: 300), () {
+              _isDoubleTap = false;
+            });
+          }
+        },
       ),
       children: [
         openStreetMapTileLayer,
-        MarkerLayer(markers: [
-          Marker(
-              point: LatLng(51.5, -0.09),
-              width: 80.0,
-              height: 80.0,
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: Icon(Icons.location_pin),
-                iconSize: 60,
-                color: Colors.red,
-                onPressed: () {
-                  // Navigate to the place details page
-                },
-              )),
-        ]),
+        MarkerLayer(markers: _markers),
       ],
     );
   }

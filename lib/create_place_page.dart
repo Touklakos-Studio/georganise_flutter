@@ -3,8 +3,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:async';
+import 'package:latlong2/latlong.dart';
+import 'dart:convert';
 
 class CreatePlacePage extends StatefulWidget {
+  final LatLng position;
+
+  const CreatePlacePage({required this.position});
+
   @override
   _CreatePlacePageState createState() => _CreatePlacePageState();
 }
@@ -28,33 +34,43 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
   }
 
   Future<void> _sendPlaceData() async {
-    var url = Uri.parse(
-        'https://jsonplaceholder.typicode.com/posts'); // TODO : Replace with your API endpoint
+    // Parse the user-entered tags
+    List<int> tagIds = _tagsController.text
+        .split(',')
+        .map((tag) => int.tryParse(tag.trim()) ?? 0)
+        .toList();
 
-    var request = http.MultipartRequest('POST', url)
-      ..fields['title'] = _titleController.text
-      ..fields['description'] = _descriptionController.text
-      ..fields['tags'] = _tagsController.text;
+    var url = Uri.parse('http://10.0.2.2:8080/api/place');
 
+    var request = http.MultipartRequest('POST', url);
+
+    // Add the other fields to the request
+    request.fields['name'] = _titleController.text;
+    request.fields['description'] = _descriptionController.text;
+    request.fields['latitude'] = widget.position.latitude.toString();
+    request.fields['longitude'] = widget.position.longitude.toString();
+    request.fields['tagIds'] = json.encode(tagIds);
+
+    // Add the image file to the request, if it exists
     if (_image != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'image',
-        _image!.path,
-      ));
+      var imageStream =
+          http.ByteStream(Stream.fromIterable([_image!.readAsBytesSync()]));
+      var imageLength = await _image!.length();
+      request.files.add(http.MultipartFile('image', imageStream, imageLength,
+          filename: _image!.path.split('/').last));
     }
 
+    // Send the request
     var response = await request.send();
 
     if (response.statusCode == 201) {
-      // Adjusted to expect 200 OK from JSONPlaceholder
       debugPrint('Place created successfully');
       final resBody = await response.stream.bytesToString();
       debugPrint('Response status code: ${response.statusCode}');
       debugPrint('Response body: $resBody');
-      Navigator.pop(context); // Or navigate as needed
+      Navigator.pop(context, true); // Or navigate as needed
     } else {
-      final resBody =
-          await response.stream.bytesToString(); // Retrieve the response body
+      final resBody = await response.stream.bytesToString();
       debugPrint('Failed to create place');
       debugPrint('Response status code: ${response.statusCode}');
       debugPrint('Response body: $resBody');
@@ -78,7 +94,8 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () =>
+              Navigator.of(context).pop(false), // Place was not created
         ),
         title: Text(
           'Create Place',
@@ -93,6 +110,11 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              'Latitude: ${widget.position.latitude}, Longitude: ${widget.position.longitude}',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
