@@ -113,19 +113,32 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        // Create a list of Widgets for each tag.
+        List<Widget> tagWidgets = place.placeTags.map((tag) {
+          return Chip(
+            label: Text('Tag ${tag['placeTagId']}'),
+            backgroundColor: Colors.green[200],
+          );
+        }).toList();
+
         return AlertDialog(
           title: Text(place.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(place.description),
-              SizedBox(height: 8),
-              Text(
-                'Tags: ${place.placeTags.join(', ')}',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          content: SingleChildScrollView(
+            // Use a SingleChildScrollView for content that might overflow
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(place.description),
+                SizedBox(height: 8),
+                // Display the tags using the tagWidgets list.
+                // Wrap allows the tag list to wrap to the next line if there's not enough space.
+                Wrap(
+                  spacing: 8.0, // Spacing between chips
+                  children: tagWidgets,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
