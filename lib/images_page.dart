@@ -122,8 +122,9 @@ class _ImagesPageState extends State<ImagesPage> {
     if (_selectedImageId == null) return SizedBox.shrink(); // Safety check
 
     final selectedImage = _images.firstWhere(
-        (image) => image['imageId'] == _selectedImageId,
-        orElse: () => null);
+      (image) => image['imageId'] == _selectedImageId,
+      orElse: () => null,
+    );
     if (selectedImage == null) return SizedBox.shrink(); // Safety check
 
     String base64Image = selectedImage['imageValue'];
@@ -133,7 +134,20 @@ class _ImagesPageState extends State<ImagesPage> {
     final decodedBytes = base64Decode(base64Image);
 
     return AlertDialog(
-      content: Image.memory(decodedBytes, fit: BoxFit.cover),
+      title: Text(selectedImage['name'] ?? 'No Title'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.memory(decodedBytes, fit: BoxFit.cover),
+            SizedBox(height: 10), // Spacing between image and text
+            Text("ID: ${selectedImage['imageId']}",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 5), // Spacing between ID and description
+            Text(selectedImage['description'] ?? 'No Description'),
+          ],
+        ),
+      ),
       actions: <Widget>[
         TextButton(
           child: Text('Close'),
@@ -266,25 +280,34 @@ class _ImagesPageState extends State<ImagesPage> {
                           _showPopup = true;
                         });
                       },
-                      child: Column(
-                        children: <Widget>[
-                          Expanded(
-                            child: Image.memory(
-                              decodedBytes,
-                              fit: BoxFit.cover,
+                      child: GridTile(
+                        footer: Material(
+                          color: Colors.transparent,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                                bottom: Radius.circular(4)),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: GridTileBar(
+                            backgroundColor: Colors.black45,
+                            title: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                image['name'] ?? 'No Title',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            subtitle: Text(
+                              'ID: ${image['imageId']}',
+                              style: TextStyle(fontSize: 12),
                             ),
                           ),
-                          Text(
-                            image['name'] ?? 'No Title',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            image['description'] ?? 'No Description',
-                            style: TextStyle(fontStyle: FontStyle.italic),
-                          ),
-                          if (_selectedImageId == image['imageId'])
-                            Icon(Icons.check_circle, color: Colors.green),
-                        ],
+                        ),
+                        child: Image.memory(
+                          decodedBytes,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     );
                   },
@@ -293,18 +316,6 @@ class _ImagesPageState extends State<ImagesPage> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_selectedImageId != null) {
-            Navigator.pop(context, _selectedImageId);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Please select an image first')),
-            );
-          }
-        },
-        child: Icon(Icons.check),
       ),
       bottomSheet: _showPopup ? _buildPopup() : null,
     );
