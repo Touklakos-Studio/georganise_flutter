@@ -47,71 +47,102 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _deleteAccountAndLogout() async {
-    try {
-      String baseUrl = GlobalConfig().serverUrl;
-      // Attempt to retrieve the authToken from secure storage
-      String? authToken = await SecureStorageManager.getAuthToken();
+    // Show a confirmation dialog before deleting the account
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Account'),
+          content: Text('Are you sure you want to delete your account?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Close the dialog without deleting the account
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                try {
+                  String baseUrl = GlobalConfig().serverUrl;
+                  // Attempt to retrieve the authToken from secure storage
+                  String? authToken = await SecureStorageManager.getAuthToken();
 
-      // Make the DELETE request to delete the user account on the backend
-      final deleteResponse = await http.delete(
-        Uri.parse(
-            '$baseUrl/api/user/${_userData?['userId'].toString()}'), // Convert userId to string
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': 'authToken=$authToken',
-        },
-      );
+                  // Make the DELETE request to delete the user account on the backend
+                  final deleteResponse = await http.delete(
+                    Uri.parse(
+                        '$baseUrl/api/user/${_userData?['userId'].toString()}'), // Convert userId to string
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Cookie': 'authToken=$authToken',
+                    },
+                  );
 
-      // Check the response status code for account deletion
-      if (deleteResponse.statusCode == 200 ||
-          deleteResponse.statusCode == 204) {
-        // Proceed with the logout process
-        final logoutResponse = await http.post(
-          Uri.parse('$baseUrl/api/user/logout'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Cookie': 'authToken=$authToken',
-          },
+                  // Check the response status code for account deletion
+                  if (deleteResponse.statusCode == 200 ||
+                      deleteResponse.statusCode == 204) {
+                    // Proceed with the logout process
+                    final logoutResponse = await http.post(
+                      Uri.parse('$baseUrl/api/user/logout'),
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': 'authToken=$authToken',
+                      },
+                    );
+
+                    // Check the response status code for logout
+                    if (logoutResponse.statusCode == 200 ||
+                        logoutResponse.statusCode == 204) {
+                      debugPrint('Logout successful on backend');
+                    } else {
+                      debugPrint(
+                          'Failed to logout on backend. Status code: ${logoutResponse.statusCode}');
+                    }
+
+                    // Regardless of the response, clear the authToken from secure storage
+                    await SecureStorageManager.deleteAuthToken();
+                    debugPrint(
+                        'Auth token deleted successfully from local storage');
+
+                    // Navigate to the WelcomePage and remove all previous routes
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const WelcomePage()),
+                      (Route<dynamic> route) => false,
+                    );
+                    debugPrint('Account deletion successful on backend');
+                  } else {
+                    debugPrint(
+                        'Failed to delete account on backend. Status code: ${deleteResponse.statusCode}');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to delete account'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  debugPrint(
+                      'An error occurred during account deletion and logout: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'An error occurred during account deletion and logout'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } finally {
+                  Navigator.of(context)
+                      .pop(); // Close the dialog after deleting the account or handling errors
+                }
+              },
+            ),
+          ],
         );
-
-        // Check the response status code for logout
-        if (logoutResponse.statusCode == 200 ||
-            logoutResponse.statusCode == 204) {
-          debugPrint('Logout successful on backend');
-        } else {
-          debugPrint(
-              'Failed to logout on backend. Status code: ${logoutResponse.statusCode}');
-        }
-
-        // Regardless of the response, clear the authToken from secure storage
-        await SecureStorageManager.deleteAuthToken();
-        debugPrint('Auth token deleted successfully from local storage');
-
-        // Navigate to the WelcomePage and remove all previous routes
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const WelcomePage()),
-          (Route<dynamic> route) => false,
-        );
-        debugPrint('Account deletion successful on backend');
-      } else {
-        debugPrint(
-            'Failed to delete account on backend. Status code: ${deleteResponse.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete account'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('An error occurred during account deletion and logout: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred during account deletion and logout'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+      },
+    );
   }
 
   @override
