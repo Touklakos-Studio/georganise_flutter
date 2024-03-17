@@ -183,7 +183,15 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                       final place = _filteredPlaces[index];
                       return Column(
                         children: [
-                          PlaceCard(place: place),
+                          PlaceCard(
+                            place: place,
+                            onPlaceDeleted: () {
+                              setState(() {
+                                _places.removeWhere(
+                                    (p) => p.placeId == place.placeId);
+                              });
+                            },
+                          ),
                           if (index < _filteredPlaces.length - 1)
                             Divider(color: Colors.grey),
                         ],
@@ -196,7 +204,15 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                       final place = _places[index];
                       return Column(
                         children: [
-                          PlaceCard(place: place),
+                          PlaceCard(
+                            place: place,
+                            onPlaceDeleted: () {
+                              setState(() {
+                                _places.removeWhere(
+                                    (p) => p.placeId == place.placeId);
+                              });
+                            },
+                          ),
                           if (index < _places.length - 1)
                             Divider(color: Colors.grey),
                         ],

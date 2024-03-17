@@ -8,8 +8,9 @@ import 'dart:typed_data';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
+  final VoidCallback onPlaceDeleted; // Add this line
 
-  PlaceCard({required this.place});
+  PlaceCard({required this.place, required this.onPlaceDeleted});
 
   @override
   _PlaceCardState createState() => _PlaceCardState();
@@ -97,6 +98,59 @@ class _PlaceCardState extends State<PlaceCard> {
     }
   }
 
+  Future<void> _deletePlace() async {
+    // Show a confirmation dialog before deleting the place
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Place'),
+          content: Text('Are you sure you want to delete this place?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                // Send a DELETE request to your server
+                String? authToken = await SecureStorageManager.getAuthToken();
+                if (authToken == null) {
+                  debugPrint("Auth token is null");
+                  return;
+                }
+
+                try {
+                  String baseUrl = GlobalConfig().serverUrl;
+                  final response = await http.delete(
+                    Uri.parse('$baseUrl/api/place/${widget.place.placeId}'),
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Cookie': 'authToken=$authToken',
+                    },
+                  );
+
+                  if (response.statusCode == 200) {
+                    // Place deleted successfully, call the callback to refresh the list
+                    widget.onPlaceDeleted();
+                    Navigator.of(context).pop();
+                  } else {
+                    debugPrint('Failed to delete place: ${response.body}');
+                  }
+                } catch (e) {
+                  debugPrint('Error deleting place: $e');
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -161,6 +215,16 @@ class _PlaceCardState extends State<PlaceCard> {
                       },
                     ),
                     if (_showUsername && _userName != null) Text(_userName!),
+                  ],
+                ),
+                ButtonBar(
+                  alignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    // ...
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: _deletePlace,
+                    ),
                   ],
                 ),
               ],
