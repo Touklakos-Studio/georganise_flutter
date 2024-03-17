@@ -152,6 +152,23 @@ class _PlaceCardState extends State<PlaceCard> {
     );
   }
 
+  List<Widget> _buildTagWidgets(List<dynamic> tags) {
+    return tags.map((tag) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Chip(
+          label: Text(
+            'Tag ${tag['placeTagId']}',
+            style: TextStyle(
+              color: Colors.white, // Set text color to white
+            ),
+          ), // Customize your tag display format
+          backgroundColor: Colors.green,
+        ),
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -191,6 +208,13 @@ class _PlaceCardState extends State<PlaceCard> {
                       style: TextStyle(
                         color: Colors.white,
                       ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    // Use the _buildTagWidgets function to create a row of tag widgets
+                    child: Wrap(
+                      children: _buildTagWidgets(widget.place.placeTags),
                     ),
                   ),
                   ButtonBar(
