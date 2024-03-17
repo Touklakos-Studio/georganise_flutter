@@ -150,29 +150,21 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                 true); // Pass a true value to indicate that the back arrow was pressed
           },
         ),
-        title: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(30),
+        title: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Search places...',
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.white),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: '🕵️ Search your places here...',
-              border: InputBorder.none,
-              hintStyle: TextStyle(color: Colors.white),
-              prefixIcon: Icon(Icons.search, color: Colors.white),
-            ),
-            style: TextStyle(color: Colors.white),
-            onChanged: (query) {
-              if (query.isNotEmpty) {
-                _searchPlaces(query);
-              } else {
-                _clearSearch();
-              }
-            },
-          ),
+          style: TextStyle(color: Colors.white),
+          onChanged: (query) {
+            if (query.isNotEmpty) {
+              _searchPlaces(query);
+            } else {
+              _clearSearch();
+            }
+          },
         ),
         backgroundColor: Colors.green,
       ),
