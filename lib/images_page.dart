@@ -119,13 +119,13 @@ class _ImagesPageState extends State<ImagesPage> {
   }
 
   Widget _buildPopup() {
-    if (_selectedImageId == null) return SizedBox.shrink(); // Safety check
+    if (_selectedImageId == null) return SizedBox.shrink();
 
     final selectedImage = _images.firstWhere(
       (image) => image['imageId'] == _selectedImageId,
       orElse: () => null,
     );
-    if (selectedImage == null) return SizedBox.shrink(); // Safety check
+    if (selectedImage == null) return SizedBox.shrink();
 
     String base64Image = selectedImage['imageValue'];
     if (base64Image.startsWith('data:image')) {
@@ -140,32 +140,123 @@ class _ImagesPageState extends State<ImagesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.memory(decodedBytes, fit: BoxFit.cover),
-            SizedBox(height: 10), // Spacing between image and text
+            SizedBox(height: 10),
             Text("ID: ${selectedImage['imageId']}",
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 5), // Spacing between ID and description
+            SizedBox(height: 5),
             Text(selectedImage['description'] ?? 'No Description'),
           ],
         ),
       ),
       actions: <Widget>[
-        ElevatedButton(
-          child: Text('Select this image'),
-          onPressed: () {
-            Navigator.pop(context, _selectedImageId);
-          },
-        ),
-        IconButton(
-          icon: Icon(Icons.edit, color: Colors.green),
+        ElevatedButton.icon(
+          icon: Icon(Icons.edit, color: Colors.white),
+          label: Text('Edit', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            elevation: 5.0,
+          ),
           onPressed: () {
             _editImage(selectedImage);
           },
         ),
-        TextButton(
-          child: Text('Close'),
+        ElevatedButton.icon(
+          icon: Icon(Icons.delete, color: Colors.white),
+          label: Text('Delete', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            elevation: 5.0,
+          ),
+          onPressed: () {
+            _confirmDeleteImage(selectedImage['imageId']);
+          },
+        ),
+        ElevatedButton(
+          child:
+              Text('Select this image', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurple,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            elevation: 5.0,
+          ),
+          onPressed: () {
+            Navigator.pop(context, _selectedImageId);
+          },
+        ),
+        ElevatedButton(
+          child: Text('Close', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            elevation: 5.0,
+          ),
           onPressed: () => setState(() => _showPopup = false),
         ),
       ],
+    );
+  }
+
+  Future<void> _deleteImage(int imageId) async {
+    try {
+      String baseUrl = GlobalConfig().serverUrl;
+      String? authToken = await SecureStorageManager.getAuthToken();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/image/$imageId'),
+        headers: {'Cookie': 'authToken=$authToken'},
+      );
+
+      if (response.statusCode == 200) {
+        // Image deleted successfully
+        debugPrint('Image deleted successfully');
+        await _fetchImages(); // Refresh the list of images
+      } else {
+        // Failed to delete image
+        debugPrint('Failed to delete image');
+      }
+    } catch (e) {
+      // An error occurred while deleting the image
+      debugPrint('An error occurred while deleting the image: $e');
+    }
+  }
+
+  Future<void> _confirmDeleteImage(int imageId) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button for close dialog
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Confirm Deletion'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to delete this image?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+            ),
+            ElevatedButton(
+              child: Text('Delete'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                _deleteImage(imageId); // Call the delete method
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
