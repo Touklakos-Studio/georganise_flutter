@@ -6,6 +6,8 @@ import 'secure_storage_manager.dart';
 import 'global_config.dart';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'create_place_page.dart';
+import 'package:latlong2/latlong.dart';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
@@ -287,6 +289,26 @@ class _PlaceCardState extends State<PlaceCard> {
                         color: Colors.red,
                         onPressed: _deletePlace,
                       ),
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () async {
+                          final bool? result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CreatePlacePage(
+                                position: LatLng(widget.place.latitude,
+                                    widget.place.longitude),
+                                placeToEdit: widget.place,
+                              ),
+                            ),
+                          );
+
+                          if (result == true) {
+                            widget
+                                .refreshSearch(); // Reload the list to reflect any changes
+                          }
+                        },
+                      )
                     ],
                   ),
                 ],

@@ -9,12 +9,19 @@ import 'tags_page.dart';
 import 'images_page.dart';
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
+import 'place.dart';
 
 class CreatePlacePage extends StatefulWidget {
   final LatLng position; // Make position optional
   final int? selectedImageId;
+  final Place? placeToEdit;
 
-  const CreatePlacePage({required this.position, this.selectedImageId});
+  const CreatePlacePage({
+    Key? key,
+    required this.position,
+    this.selectedImageId,
+    this.placeToEdit,
+  }) : super(key: key);
 
   @override
   _CreatePlacePageState createState() => _CreatePlacePageState();
@@ -27,6 +34,72 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
   File? _image; // For storing the picked image file
   int? _selectedImageId;
   List<int> _selectedTagIds = []; // Add this line to define _selectedTagIds
+
+  @override
+  void initState() {
+    super.initState();
+    // If editing, initialize form fields with existing place details
+    if (widget.placeToEdit != null) {
+      _titleController.text = widget.placeToEdit!.name;
+      _descriptionController.text = widget.placeToEdit!.description;
+      // TODO : Retrieve selected tag ids from the placeToEdit
+      // _selectedTagIds = List.from(widget.placeToEdit!.placeTags.map((tag) => tag.placeTagId));
+      // Retrieve selected image id from the placeToEdit
+      _selectedImageId = widget.placeToEdit!.imageId;
+    }
+  }
+
+  Future<void> _submitPlaceData() async {
+    if (!_validateInputs()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Title and description are required')),
+      );
+      return;
+    }
+
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      return;
+    }
+
+    String baseUrl = GlobalConfig().serverUrl;
+    String url = widget.placeToEdit == null
+        ? '$baseUrl/api/place'
+        : '$baseUrl/api/place/${widget.placeToEdit!.placeId}';
+
+    Map<String, dynamic> requestBody = {
+      "name": _titleController.text,
+      "description": _descriptionController.text,
+      "latitude": widget.position.latitude,
+      "longitude": widget.position.longitude,
+      "tagIds": _selectedTagIds,
+    };
+
+    if (_selectedImageId != null) {
+      requestBody["imageId"] = _selectedImageId;
+    }
+
+    var response = await (widget.placeToEdit == null
+        ? http.post(Uri.parse(url), body: json.encode(requestBody), headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'authToken=$authToken',
+          })
+        : http.put(Uri.parse(url), body: json.encode(requestBody), headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'authToken=$authToken',
+          }));
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      debugPrint('Place submitted successfully');
+      Navigator.pop(context, true); // Or navigate as needed
+    } else {
+      debugPrint('Failed to submit place. Status code: ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred while submitting the place')),
+      );
+    }
+  }
 
   // Function to handle image picking
   Future<void> _pickImage() async {
@@ -129,6 +202,8 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
 
   @override
   Widget build(BuildContext context) {
+    String pageTitle =
+        widget.placeToEdit == null ? 'Create Place' : 'Edit Place';
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -137,7 +212,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
               Navigator.of(context).pop(false), // Place was not created
         ),
         title: Text(
-          'Create Place',
+          pageTitle,
           style: TextStyle(
             color: Colors.white,
           ),
@@ -216,15 +291,10 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
               ),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _sendPlaceData(_selectedTagIds),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.green,
-              ),
-              child: Text(
-                'Create Place',
-              ),
+            FloatingActionButton(
+              backgroundColor: Colors.white,
+              onPressed: _submitPlaceData,
+              child: const Icon(Icons.arrow_forward, color: Colors.green),
             ),
           ],
         ),
