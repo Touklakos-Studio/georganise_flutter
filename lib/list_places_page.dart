@@ -145,7 +145,10 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.pop(context,
+                true); // Pass a true value to indicate that the back arrow was pressed
+          },
         ),
         title: TextField(
           controller: _searchController,

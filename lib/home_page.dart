@@ -28,6 +28,9 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchUserIdAndPlaces() async {
     try {
+      setState(() {
+        _markers.clear(); // Clear existing markers
+      });
       final int? userId = await _fetchUserId();
       if (userId != null) {
         await _fetchPlaces(userId);
@@ -212,11 +215,14 @@ class _HomePageState extends State<HomePage> {
             ),
             IconButton(
               icon: Icon(Icons.menu, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ListPlacesPage()),
                 );
+                if (result == true) {
+                  await _fetchUserIdAndPlaces();
+                }
               },
             ),
             IconButton(
