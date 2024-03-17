@@ -15,6 +15,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   String _email = '';
+  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
   String _password = '';
 
   void _tryLogin() async {
@@ -72,6 +73,13 @@ class _LoginPageState extends State<LoginPage> {
             context,
             MaterialPageRoute(builder: (context) => const HomePage()),
           );
+        } else if (response.statusCode == 400) {
+          debugPrint('Login failed');
+          debugPrint('Response status: ${response.statusCode}');
+          debugPrint('Response body: ${response.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid email or password')),
+          );
         } else {
           debugPrint('Login failed');
           debugPrint('Response status: ${response.statusCode}');
@@ -124,6 +132,14 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 keyboardType: TextInputType.emailAddress,
                 onSaved: (value) => _email = value!,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an email address';
+                  } else if (!emailRegex.hasMatch(value)) {
+                    return 'Please enter a valid email address';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -138,6 +154,12 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 obscureText: true,
                 onSaved: (value) => _password = value!,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'A password is required';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 32),
               FloatingActionButton(
