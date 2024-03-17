@@ -21,23 +21,58 @@ class _PlaceCardState extends State<PlaceCard> {
   bool _showUsername = false;
   String? _userName;
   Uint8List? _imageData;
+  Map<int, String> _tagNames = {};
 
   @override
   void initState() {
     super.initState();
     _fetchImage();
-    // Call to fetch user name removed from initState since it should be triggered by a button press
+    _initializeTagNames();
+  }
+
+  void _initializeTagNames() {
+    widget.place.placeTags.forEach((placeTag) {
+      int placeTagId = placeTag['placeTagId'];
+      _tagNames[placeTagId] =
+          "Fetching..."; // Default text before fetch completes
+      _fetchTagName(placeTagId).then((name) {
+        if (mounted) {
+          setState(() {
+            _tagNames[placeTagId] =
+                name ?? "Unknown Tag"; // Fallback to "Unknown Tag"
+          });
+        }
+      });
+    });
+  }
+
+  Future<String?> _fetchTagName(int placeTagId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) return "Unknown Tag";
+    String baseUrl = GlobalConfig().serverUrl;
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/tag/placeTag/$placeTagId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['title'];
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch tag name: $e');
+    }
+    return "Unknown Tag"; // Return "Unknown Tag" if fetch fails
   }
 
   Future<void> _fetchImage() async {
     String? authToken = await SecureStorageManager.getAuthToken();
-    if (authToken == null || !mounted) {
-      debugPrint("Auth token is null or widget is unmounted");
-      return;
-    }
-
+    if (authToken == null || !mounted) return;
+    String baseUrl = GlobalConfig().serverUrl;
     try {
-      String baseUrl = GlobalConfig().serverUrl;
       final response = await http.get(
         Uri.parse('$baseUrl/api/image/${widget.place.imageId}'),
         headers: {
@@ -45,26 +80,15 @@ class _PlaceCardState extends State<PlaceCard> {
           'Cookie': 'authToken=$authToken',
         },
       );
-
       if (response.statusCode == 200 && mounted) {
-        final data = json.decode(response.body);
-        setState(() {
-          final String? imageDataString = data['imageValue'];
-          if (imageDataString != null) {
-            _imageData = base64Decode(imageDataString);
-          } else {
-            debugPrint("Image data is null");
-          }
-        });
-      } else if (!mounted) {
-        debugPrint('Widget unmounted before request completion');
-      } else {
-        debugPrint('Failed to fetch image: ${response.body}');
+        final String? imageDataString =
+            json.decode(response.body)['imageValue'];
+        if (imageDataString != null) {
+          setState(() => _imageData = base64Decode(imageDataString));
+        }
       }
     } catch (e) {
-      if (mounted) {
-        debugPrint('Error fetching image: $e');
-      }
+      debugPrint('Error fetching image: $e');
     }
   }
 
@@ -152,17 +176,15 @@ class _PlaceCardState extends State<PlaceCard> {
     );
   }
 
-  List<Widget> _buildTagWidgets(List<dynamic> tags) {
-    return tags.map((tag) {
+  List<Widget> _buildTagWidgets() {
+    return widget.place.placeTags.map((tag) {
+      int tagId = tag['placeTagId'];
+      String tagName = _tagNames[tagId] ??
+          "Unknown Tag"; // Use fetched name or "Unknown Tag"
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: Chip(
-          label: Text(
-            'Tag ${tag['placeTagId']}',
-            style: TextStyle(
-              color: Colors.white, // Set text color to white
-            ),
-          ), // Customize your tag display format
+          label: Text(tagName, style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.green,
         ),
       );
@@ -203,18 +225,14 @@ class _PlaceCardState extends State<PlaceCard> {
                     ),
                     subtitle: Text(
                       "${widget.place.description}\nLat: ${widget.place.latitude}, Long: ${widget.place.longitude}",
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    // Use the _buildTagWidgets function to create a row of tag widgets
                     child: Wrap(
-                      children: _buildTagWidgets(widget.place.placeTags),
+                      children:
+                          _buildTagWidgets(), // Updated to use the new method
                     ),
                   ),
                   ButtonBar(
@@ -273,7 +291,7 @@ class _PlaceCardState extends State<PlaceCard> {
                         onPressed: _deletePlace,
                       ),
                     ],
-                  ),
+                  ), // The ButtonBar for share, download, and delete icons remains unchanged
                 ],
               ),
             ),

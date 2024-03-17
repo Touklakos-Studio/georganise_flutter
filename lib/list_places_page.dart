@@ -94,24 +94,15 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     if (userId != null) {
       String? authToken = await SecureStorageManager.getAuthToken();
 
-      var response = null;
       try {
-        response = await http.get(
+        final response = await http.get(
           Uri.parse('$baseUrl/api/place/keyword/$query'),
           headers: {
             'Content-Type': 'application/json',
             'Cookie': 'authToken=$authToken',
           },
         );
-      } catch (e) {
-        debugPrint('Error searching places: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error : Failed to search places')),
-        );
-      }
 
-      if (response != null) {
-        debugPrint('Response : $response');
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
           setState(() {
@@ -124,8 +115,11 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
           debugPrint('Failed to search places: ${response.body}');
           throw Exception('Failed to search places');
         }
-      } else {
-        debugPrint('Response is null.');
+      } catch (e) {
+        debugPrint('Error searching places: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error : Failed to search places')),
+        );
       }
     } else {
       debugPrint('User ID is null.');
