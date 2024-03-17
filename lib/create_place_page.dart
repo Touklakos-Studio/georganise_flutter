@@ -59,7 +59,19 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     }
   }
 
+  bool _validateInputs() {
+    return _titleController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty;
+  }
+
   Future<void> _sendPlaceData(List<int> selectedTagIds) async {
+    if (!_validateInputs()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Title and description are required')),
+      );
+      return;
+    }
+
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
       debugPrint("Auth token is null");
