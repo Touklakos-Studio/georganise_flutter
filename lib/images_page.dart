@@ -23,6 +23,8 @@ class _ImagesPageState extends State<ImagesPage> {
   final TextEditingController _imageTitleController = TextEditingController();
   final TextEditingController _imageDescriptionController =
       TextEditingController();
+  final TextEditingController _searchController =
+      TextEditingController(); // Search controller
   bool _isPublic = true;
   File? _imageFile; // Holds the file for an image picked from the gallery
   bool _showPopup = false; // Controls visibility of the popup
@@ -132,6 +134,40 @@ class _ImagesPageState extends State<ImagesPage> {
       }
     } catch (e) {
       debugPrint('An error occurred while creating an image: $e');
+    }
+  }
+
+  Future<void> _searchImages(String keyword) async {
+    if (keyword.trim().isEmpty) {
+      // If the search query is empty, fetch all images instead.
+      await _fetchImages();
+      return;
+    }
+
+    try {
+      String baseUrl = GlobalConfig().serverUrl;
+      String? authToken = await SecureStorageManager.getAuthToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/image/keyword/$keyword'),
+        headers: {'Cookie': 'authToken=$authToken'},
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('Fetched images for the keyword: $keyword');
+        setState(() {
+          _images = json.decode(response.body);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Failed to fetch images for the keyword: $keyword')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred while fetching images: $e')),
+      );
     }
   }
 
@@ -461,6 +497,24 @@ class _ImagesPageState extends State<ImagesPage> {
               Text(
                 'Your Images',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Search Images',
+                  hintText: 'Enter a keyword',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: () => _searchImages(_searchController.text
+                        .trim()), // Trim the text to remove leading/trailing whitespace
+                  ),
+                ),
+                onSubmitted: (value) {
+                  // Trim the text to remove leading/trailing whitespace
+                  _searchImages(value.trim());
+                },
+                textInputAction: TextInputAction
+                    .search, // Changes the keyboard action button to a search icon
               ),
               SizedBox(height: 8),
               Container(
