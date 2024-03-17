@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'create_place_page.dart';
 import 'list_places_page.dart';
-import 'settings_page.dart';
+import 'profile_page.dart';
 import 'welcome_page.dart';
 import 'secure_storage_manager.dart';
 import 'add_place_page.dart';
@@ -220,11 +220,11 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.settings, color: Colors.white),
+              icon: Icon(Icons.account_circle, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()),
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
                 );
               },
             ),

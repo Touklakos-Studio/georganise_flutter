@@ -13,7 +13,9 @@ class ListPlacesPage extends StatefulWidget {
 
 class _ListPlacesPageState extends State<ListPlacesPage> {
   List<Place> _places = [];
+  List<Place> _filteredPlaces = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -82,6 +84,61 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     }
   }
 
+  Future<void> _searchPlaces(String query) async {
+    final int? userId = await _fetchUserId();
+    if (userId != null) {
+      String? authToken = await SecureStorageManager.getAuthToken();
+
+      var response = null;
+      try {
+        response = await http.get(
+          Uri.parse('$baseUrl/api/places/word/$query'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'authToken=$authToken',
+          },
+        );
+      } catch (e) {
+        debugPrint('Error searching places: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error : Failed to search places')),
+        );
+      }
+
+      if (response != null) {
+        debugPrint('Response : $response');
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+          setState(() {
+            _filteredPlaces =
+                data.map((placeData) => Place.fromJson(placeData)).toList();
+          });
+        } else if (response.statusCode == 418) {
+          debugPrint('No places found');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Error 418 : No static resource api/places/word/$query')),
+          );
+        } else {
+          debugPrint('Failed to search places: ${response.body}');
+          throw Exception('Failed to search places');
+        }
+      } else {
+        debugPrint('Response is null.');
+      }
+    } else {
+      debugPrint('User ID is null.');
+    }
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _searchController.clear();
+      _filteredPlaces.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,12 +147,27 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('Places', style: TextStyle(color: Colors.white)),
+        title: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Search...',
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.white),
+          ),
+          style: TextStyle(color: Colors.white),
+          onChanged: (query) {
+            if (query.isNotEmpty) {
+              _searchPlaces(query);
+            } else {
+              _clearSearch();
+            }
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.search, color: Colors.white),
             onPressed: () {
-              // Future implementation of search functionality
+              _searchPlaces(_searchController.text);
             },
           ),
         ],
@@ -104,19 +176,33 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
       body: SafeArea(
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                itemCount: _places.length,
-                itemBuilder: (context, index) {
-                  final place = _places[index];
-                  return Column(
-                    children: [
-                      PlaceCard(place: place),
-                      if (index < _places.length - 1)
-                        Divider(color: Colors.grey),
-                    ],
-                  );
-                },
-              ),
+            : _filteredPlaces.isNotEmpty
+                ? ListView.builder(
+                    itemCount: _filteredPlaces.length,
+                    itemBuilder: (context, index) {
+                      final place = _filteredPlaces[index];
+                      return Column(
+                        children: [
+                          PlaceCard(place: place),
+                          if (index < _filteredPlaces.length - 1)
+                            Divider(color: Colors.grey),
+                        ],
+                      );
+                    },
+                  )
+                : ListView.builder(
+                    itemCount: _places.length,
+                    itemBuilder: (context, index) {
+                      final place = _places[index];
+                      return Column(
+                        children: [
+                          PlaceCard(place: place),
+                          if (index < _places.length - 1)
+                            Divider(color: Colors.grey),
+                        ],
+                      );
+                    },
+                  ),
       ),
     );
   }
