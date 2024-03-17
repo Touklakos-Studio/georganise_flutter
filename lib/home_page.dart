@@ -113,44 +113,79 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // Create a list of Widgets for each tag.
-        List<Widget> tagWidgets = place.placeTags.map((tag) {
-          return Chip(
-            label: Text('Tag ${tag['placeTagId']}'),
-            backgroundColor: Colors.green[200],
-          );
-        }).toList();
-
         return AlertDialog(
           title: Text(place.name),
           content: SingleChildScrollView(
-            // Use a SingleChildScrollView for content that might overflow
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(place.description),
                 SizedBox(height: 8),
-                // Display the tags using the tagWidgets list.
-                // Wrap allows the tag list to wrap to the next line if there's not enough space.
-                Wrap(
-                  spacing: 8.0, // Spacing between chips
-                  children: tagWidgets,
+                FutureBuilder<List<String>>(
+                  future: _fetchTagNames(place.placeTags),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else if (snapshot.hasData) {
+                      return Wrap(
+                        spacing: 8.0, // Spacing between chips
+                        children: snapshot.data!
+                            .map((tagName) => Chip(
+                                  label: Text(tagName),
+                                  backgroundColor: Colors.green[200],
+                                ))
+                            .toList(),
+                      );
+                    } else {
+                      return Text("No tags available");
+                    }
+                  },
                 ),
               ],
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: Text('Close'),
             ),
           ],
         );
       },
     );
+  }
+
+  Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
+    List<String> tagNames = [];
+    for (var tag in placeTags) {
+      int tagId = tag['placeTagId'];
+      String tagName = await _fetchTagName(tagId) ?? "Unknown Tag";
+      tagNames.add(tagName);
+    }
+    return tagNames;
+  }
+
+  Future<String?> _fetchTagName(int placeTagId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) return "Unknown Tag";
+    String baseUrl = GlobalConfig().serverUrl;
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/tag/placeTag/$placeTagId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['title'];
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch tag name: $e');
+    }
+    return "Unknown Tag"; // Return "Unknown Tag" if fetch fails
   }
 
   @override
