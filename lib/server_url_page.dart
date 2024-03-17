@@ -13,6 +13,8 @@ class _ServerURLPageState extends State<ServerURLPage> {
   String baseUrl = GlobalConfig().serverUrl;
   // Create a text controller and use it to set the initial value
   final TextEditingController _controller;
+  final urlRegex = RegExp(
+      r'^https?:\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?$');
 
   _ServerURLPageState()
       : _controller = TextEditingController(text: GlobalConfig().serverUrl);
@@ -26,6 +28,8 @@ class _ServerURLPageState extends State<ServerURLPage> {
 
   @override
   Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>(); // Add this line
+
     return Scaffold(
       backgroundColor: Colors.green,
       appBar: AppBar(
@@ -39,47 +43,62 @@ class _ServerURLPageState extends State<ServerURLPage> {
       body: Container(
         padding: const EdgeInsets.all(16.0),
         alignment: Alignment.center,
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min, // Use the minimum space needed by the children
-          children: [
-            const Text(
-              'Server URL',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 30),
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              style: const TextStyle(fontSize: 18),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Enter server URL',
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
+        child: Form(
+          // Wrap your Column with a Form widget
+          key: _formKey, // Add this line
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Server URL',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
-                prefixIcon: Icon(Icons.link, color: Colors.green.shade800),
               ),
-            ),
-            const SizedBox(height: 40),
-            FloatingActionButton(
-              backgroundColor: Colors.white,
-              onPressed: () {
-                // Save the server URL to the global configuration
-                GlobalConfig().serverUrl = _controller.text;
-                Navigator.of(context).pop();
-              },
-              child: const Icon(Icons.arrow_forward, color: Colors.green),
-            ),
-          ],
+              const SizedBox(height: 30),
+              TextFormField(
+                // Use TextFormField instead of TextField
+                controller: _controller,
+                autofocus: true,
+                style: const TextStyle(fontSize: 18),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintText: 'Enter server URL',
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: Icon(Icons.link, color: Colors.green.shade800),
+                ),
+                validator: (value) {
+                  // Add validator property
+                  if (value == null ||
+                      value.isEmpty ||
+                      !urlRegex.hasMatch(value)) {
+                    return 'Please enter a valid URL';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 40),
+              FloatingActionButton(
+                backgroundColor: Colors.white,
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    // Validate before saving
+                    GlobalConfig().serverUrl = _controller.text;
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Icon(Icons.arrow_forward, color: Colors.green),
+              ),
+            ],
+          ),
         ),
       ),
     );
