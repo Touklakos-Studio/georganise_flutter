@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'place.dart'; // Make sure this import path matches your file structure
+import 'place.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'secure_storage_manager.dart';
@@ -9,9 +9,14 @@ import 'dart:ui';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
-  final VoidCallback onPlaceDeleted; // Add this line
+  final VoidCallback onPlaceDeleted;
+  final VoidCallback
+      refreshSearch; // Add this callback for refreshing the search
 
-  PlaceCard({required this.place, required this.onPlaceDeleted});
+  PlaceCard(
+      {required this.place,
+      required this.onPlaceDeleted,
+      required this.refreshSearch});
 
   @override
   _PlaceCardState createState() => _PlaceCardState();
@@ -21,38 +26,31 @@ class _PlaceCardState extends State<PlaceCard> {
   bool _showUsername = false;
   String? _userName;
   Uint8List? _imageData;
-  Map<int, String> _tagNames = {};
 
   @override
   void initState() {
     super.initState();
     _fetchImage();
-    _initializeTagNames();
   }
 
-  void _initializeTagNames() {
-    widget.place.placeTags.forEach((placeTag) {
-      int placeTagId = placeTag['placeTagId'];
-      _tagNames[placeTagId] =
-          "Fetching..."; // Default text before fetch completes
-      _fetchTagName(placeTagId).then((name) {
-        if (mounted) {
-          setState(() {
-            _tagNames[placeTagId] =
-                name ?? "Unknown Tag"; // Fallback to "Unknown Tag"
-          });
-        }
-      });
-    });
+  Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
+    List<String> tagNames = [];
+    for (var tag in placeTags) {
+      int tagId = tag['placeTagId'];
+      String? tagName = await _fetchTagName(tagId);
+      tagName = tagName ?? "Unknown Tag";
+      tagNames.add(tagName);
+    }
+    return tagNames;
   }
 
-  Future<String?> _fetchTagName(int placeTagId) async {
+  Future<String?> _fetchTagName(int tagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) return "Unknown Tag";
     String baseUrl = GlobalConfig().serverUrl;
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/tag/placeTag/$placeTagId'),
+        Uri.parse('$baseUrl/api/tag/placeTag/$tagId'),
         headers: {
           'Content-Type': 'application/json',
           'Cookie': 'authToken=$authToken',
@@ -65,7 +63,7 @@ class _PlaceCardState extends State<PlaceCard> {
     } catch (e) {
       debugPrint('Failed to fetch tag name: $e');
     }
-    return "Unknown Tag"; // Return "Unknown Tag" if fetch fails
+    return "Unknown Tag";
   }
 
   Future<void> _fetchImage() async {
@@ -84,7 +82,9 @@ class _PlaceCardState extends State<PlaceCard> {
         final String? imageDataString =
             json.decode(response.body)['imageValue'];
         if (imageDataString != null) {
-          setState(() => _imageData = base64Decode(imageDataString));
+          setState(() {
+            _imageData = base64Decode(imageDataString);
+          });
         }
       }
     } catch (e) {
@@ -98,7 +98,6 @@ class _PlaceCardState extends State<PlaceCard> {
       debugPrint("Auth token is null");
       return null;
     }
-
     try {
       String baseUrl = GlobalConfig().serverUrl;
       final response = await http.get(
@@ -108,11 +107,9 @@ class _PlaceCardState extends State<PlaceCard> {
           'Cookie': 'authToken=$authToken',
         },
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data[
-            'nickname']; // Assuming 'nickname' is the key for the username
+        return data['nickname'];
       } else {
         debugPrint('Failed to fetch user name: ${response.body}');
         return 'Failed to fetch user name';
@@ -124,7 +121,6 @@ class _PlaceCardState extends State<PlaceCard> {
   }
 
   Future<void> _deletePlace() async {
-    // Show a confirmation dialog before deleting the place
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -134,20 +130,16 @@ class _PlaceCardState extends State<PlaceCard> {
           actions: <Widget>[
             TextButton(
               child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               child: Text('Delete'),
               onPressed: () async {
-                // Send a DELETE request to your server
                 String? authToken = await SecureStorageManager.getAuthToken();
                 if (authToken == null) {
                   debugPrint("Auth token is null");
                   return;
                 }
-
                 try {
                   String baseUrl = GlobalConfig().serverUrl;
                   final response = await http.delete(
@@ -157,11 +149,12 @@ class _PlaceCardState extends State<PlaceCard> {
                       'Cookie': 'authToken=$authToken',
                     },
                   );
-
                   if (response.statusCode == 200) {
-                    // Place deleted successfully, call the callback to refresh the list
-                    widget.onPlaceDeleted();
-                    Navigator.of(context).pop();
+                    widget
+                        .onPlaceDeleted(); // Notify parent widget to remove the item from the list
+                    Navigator.of(context).pop(); // Close the dialog
+                    widget
+                        .refreshSearch(); // Refresh the search in the parent widget
                   } else {
                     debugPrint('Failed to delete place: ${response.body}');
                   }
@@ -174,21 +167,6 @@ class _PlaceCardState extends State<PlaceCard> {
         );
       },
     );
-  }
-
-  List<Widget> _buildTagWidgets() {
-    return widget.place.placeTags.map((tag) {
-      int tagId = tag['placeTagId'];
-      String tagName = _tagNames[tagId] ??
-          "Unknown Tag"; // Use fetched name or "Unknown Tag"
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: Chip(
-          label: Text(tagName, style: TextStyle(color: Colors.white)),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }).toList();
   }
 
   @override
@@ -228,12 +206,35 @@ class _PlaceCardState extends State<PlaceCard> {
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Wrap(
-                      children:
-                          _buildTagWidgets(), // Updated to use the new method
-                    ),
+                  FutureBuilder<List<String>>(
+                    future: _fetchTagNames(widget.place.placeTags),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<String>> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (snapshot.hasData) {
+                        return Padding(
+                          padding: const EdgeInsets.all(
+                              10.0), // Add padding around the Wrap widget
+                          child: Wrap(
+                            runSpacing:
+                                4.0, // Vertical space between lines of tags
+                            children: snapshot.data!
+                                .map((tag) => Chip(
+                                      label: Text(tag,
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                      backgroundColor: Colors.green,
+                                      padding: const EdgeInsets.all(
+                                          4.0), // Add padding inside each Chip
+                                    ))
+                                .toList(),
+                          ),
+                        );
+                      } else {
+                        return Text("No tags available");
+                      }
+                    },
                   ),
                   ButtonBar(
                     alignment: MainAxisAlignment.center,
@@ -252,13 +253,11 @@ class _PlaceCardState extends State<PlaceCard> {
                           // Implement download/export functionality
                         },
                       ),
-                      // The IconButton with a person icon
                       IconButton(
                         icon: Icon(Icons.person),
                         color: Colors.white,
                         onPressed: () async {
                           if (!_showUsername) {
-                            // Only fetch the username if it hasn't been fetched already
                             String? name =
                                 await _fetchUserName(widget.place.userId);
                             if (mounted) {
@@ -268,14 +267,12 @@ class _PlaceCardState extends State<PlaceCard> {
                               });
                             }
                           } else {
-                            // Hide the username if the icon is pressed again
                             setState(() {
                               _showUsername = false;
                             });
                           }
                         },
                       ),
-                      // This Text widget displays the username
                       if (_showUsername && _userName != null)
                         Container(
                           padding: EdgeInsets.all(8.0),
@@ -291,7 +288,7 @@ class _PlaceCardState extends State<PlaceCard> {
                         onPressed: _deletePlace,
                       ),
                     ],
-                  ), // The ButtonBar for share, download, and delete icons remains unchanged
+                  ),
                 ],
               ),
             ),
