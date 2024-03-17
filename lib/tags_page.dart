@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'secure_storage_manager.dart'; // Import the SecureStorageManager class
+import 'secure_storage_manager.dart';
 import 'global_config.dart';
 
 class TagsPage extends StatefulWidget {
@@ -20,6 +20,7 @@ class _TagsPageState extends State<TagsPage> {
   final TextEditingController _tagTitleController = TextEditingController();
   final TextEditingController _tagDescriptionController =
       TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -37,21 +38,15 @@ class _TagsPageState extends State<TagsPage> {
       final response = await http.get(
         Uri.parse('$baseUrl/api/tag'),
         headers: {
-          'Cookie': 'authToken=$authToken', // Add the AuthToken as a cookie
+          'Cookie': 'authToken=$authToken',
         },
       );
-
-      debugPrint('Response status code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         setState(() {
           _tags = json.decode(response.body);
         });
         debugPrint('Tags fetched successfully');
-        debugPrint('Response body: ${response.body}');
-      } else if (response.statusCode == 401) {
-        debugPrint('Authentication failed');
-        debugPrint('Response status code: ${response.statusCode}');
         debugPrint('Response body: ${response.body}');
       } else {
         debugPrint('Failed to fetch tags');
@@ -94,11 +89,13 @@ class _TagsPageState extends State<TagsPage> {
         debugPrint('Tag created successfully');
         _tagTitleController.clear();
         _tagDescriptionController.clear();
-        await _fetchTags(); // Refetch the tags after creating a new one
-      } else if (response.statusCode == 401) {
-        debugPrint('Authentication failed');
-        debugPrint('Response status code: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
+        await _fetchTags(); // Refetch the tags first
+        _searchController.text = _tagTitleController
+            .text; // Set the search query to the newly created tag's title
+        _searchController.selection = TextSelection.fromPosition(TextPosition(
+            offset: _searchController.text
+                .length)); // Move the cursor to the end of the search query
+        setState(() {}); // Trigger a rebuild to update the search results
       } else {
         debugPrint('Failed to create tag');
         debugPrint('Response status code: ${response.statusCode}');
@@ -106,6 +103,64 @@ class _TagsPageState extends State<TagsPage> {
       }
     } catch (e) {
       debugPrint('An error occurred while creating a tag');
+      debugPrint('Error: $e');
+    }
+  }
+
+  Future<void> _deleteTag(int tagId) async {
+    try {
+      String? authToken = await SecureStorageManager.getAuthToken();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/tag/$tagId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('Tag deleted successfully');
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Tag deleted successfully')));
+        await _fetchTags(); // Refetch the tags after deleting one
+      } else {
+        debugPrint('Failed to delete tag');
+        debugPrint('Response status code: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to delete tag')));
+      }
+    } catch (e) {
+      debugPrint('An error occurred while deleting a tag');
+      debugPrint('Error: $e');
+    }
+  }
+
+  Future<void> _fetchTagsByKeyword(String keyword) async {
+    try {
+      String? authToken = await SecureStorageManager.getAuthToken();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/tag/keyword/$keyword'),
+        headers: {
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _tags = json.decode(response.body);
+        });
+        debugPrint('Tags fetched successfully');
+        debugPrint('Response body: ${response.body}');
+      } else {
+        debugPrint('Failed to fetch tags by keyword');
+        debugPrint('Response status code: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('An error occurred while fetching tags by keyword');
       debugPrint('Error: $e');
     }
   }
@@ -124,6 +179,31 @@ class _TagsPageState extends State<TagsPage> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      labelText: 'Search Tags',
+                      fillColor: Colors.white,
+                      filled: true,
+                    ),
+                    onChanged: (query) async {
+                      if (query.isEmpty) {
+                        await _fetchTags();
+                      } else {
+                        await _fetchTagsByKeyword(query);
+                      }
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -170,16 +250,26 @@ class _TagsPageState extends State<TagsPage> {
 
                 return ListTile(
                   title: Text(tag['title']),
-                  subtitle:
-                      Text(tag['description']), // Display the description here
-                  trailing: IconButton(
-                    icon: Icon(
-                      isSelected ? Icons.check : Icons.add,
-                      color: isSelected ? Colors.green : null,
-                    ),
-                    onPressed: () {
-                      _toggleTagSelection(tag['tagId']);
-                    },
+                  subtitle: Text(tag['description']),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          isSelected ? Icons.check : Icons.add,
+                          color: isSelected ? Colors.green : null,
+                        ),
+                        onPressed: () {
+                          _toggleTagSelection(tag['tagId']);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          _deleteTag(tag['tagId']);
+                        },
+                      ),
+                    ],
                   ),
                   onTap: () {
                     _toggleTagSelection(tag['tagId']);
