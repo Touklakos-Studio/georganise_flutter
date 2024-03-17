@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
 import 'dart:typed_data';
+import 'dart:ui';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
@@ -155,81 +156,104 @@ class _PlaceCardState extends State<PlaceCard> {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.all(8.0),
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            if (_imageData != null)
-              Container(
-                width: double.infinity,
-                height: 200, // Adjust the size according to your needs
-                decoration: BoxDecoration(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Container(
+          decoration: _imageData != null
+              ? BoxDecoration(
                   image: DecorationImage(
                     fit: BoxFit.cover,
                     image: MemoryImage(_imageData!),
                   ),
-                ),
-              ),
-            ListTile(
-              leading: Icon(Icons.location_on),
-              title: Text(widget.place.name),
-              subtitle: Text(
-                "${widget.place.description}\nLat: ${widget.place.latitude}, Long: ${widget.place.longitude}",
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            ButtonBar(
-              alignment: MainAxisAlignment.center,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.share),
-                  onPressed: () {
-                    // Implement share functionality
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.cloud_download),
-                  onPressed: () {
-                    // Implement download/export functionality
-                  },
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.person),
-                      onPressed: () async {
-                        setState(() {
-                          _showUsername = !_showUsername;
-                        });
-                        if (_showUsername && _userName == null) {
-                          String? name =
-                              await _fetchUserName(widget.place.userId);
-                          if (mounted) {
+                )
+              : null,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+            child: Container(
+              alignment: Alignment.center,
+              color: Colors.black.withOpacity(0.6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  ListTile(
+                    title: Text(
+                      widget.place.name,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "${widget.place.description}\nLat: ${widget.place.latitude}, Long: ${widget.place.longitude}",
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  ButtonBar(
+                    alignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.share),
+                        color: Colors.white,
+                        onPressed: () {
+                          // Implement share functionality
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.cloud_download),
+                        color: Colors.white,
+                        onPressed: () {
+                          // Implement download/export functionality
+                        },
+                      ),
+                      // The IconButton with a person icon
+                      IconButton(
+                        icon: Icon(Icons.person),
+                        color: Colors.white,
+                        onPressed: () async {
+                          if (!_showUsername) {
+                            // Only fetch the username if it hasn't been fetched already
+                            String? name =
+                                await _fetchUserName(widget.place.userId);
+                            if (mounted) {
+                              setState(() {
+                                _showUsername = true;
+                                _userName = name;
+                              });
+                            }
+                          } else {
+                            // Hide the username if the icon is pressed again
                             setState(() {
-                              _userName = name;
+                              _showUsername = false;
                             });
                           }
-                        }
-                      },
-                    ),
-                    if (_showUsername && _userName != null) Text(_userName!),
-                  ],
-                ),
-                ButtonBar(
-                  alignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    // ...
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: _deletePlace,
-                    ),
-                  ],
-                ),
-              ],
+                        },
+                      ),
+                      // This Text widget displays the username
+                      if (_showUsername && _userName != null)
+                        Container(
+                          padding: EdgeInsets.all(8.0),
+                          color: Colors.black.withOpacity(0.5),
+                          child: Text(
+                            _userName!,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        color: Colors.red,
+                        onPressed: _deletePlace,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
