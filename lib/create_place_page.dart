@@ -12,7 +12,7 @@ import 'global_config.dart';
 import 'place.dart';
 
 class CreatePlacePage extends StatefulWidget {
-  final LatLng position; // Make position optional
+  final LatLng position;
   final int? selectedImageId;
   final Place? placeToEdit;
 
@@ -30,21 +30,23 @@ class CreatePlacePage extends StatefulWidget {
 class _CreatePlacePageState extends State<CreatePlacePage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _latitudeController = TextEditingController();
+  final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
-  File? _image; // For storing the picked image file
+  File? _image;
   int? _selectedImageId;
-  List<int> _selectedTagIds = []; // Add this line to define _selectedTagIds
+  List<int> _selectedTagIds = [];
 
   @override
   void initState() {
     super.initState();
-    // If editing, initialize form fields with existing place details
     if (widget.placeToEdit != null) {
       _titleController.text = widget.placeToEdit!.name;
       _descriptionController.text = widget.placeToEdit!.description;
-      // TODO : Retrieve selected tag ids from the placeToEdit
-      // _selectedTagIds = List.from(widget.placeToEdit!.placeTags.map((tag) => tag.placeTagId));
-      // Retrieve selected image id from the placeToEdit
+      _latitudeController.text =
+          widget.placeToEdit!.latitude.toString(); // Adjusted
+      _longitudeController.text =
+          widget.placeToEdit!.longitude.toString(); // Adjusted
       _selectedImageId = widget.placeToEdit!.imageId;
     }
   }
@@ -71,8 +73,12 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     Map<String, dynamic> requestBody = {
       "name": _titleController.text,
       "description": _descriptionController.text,
-      "latitude": widget.position.latitude,
-      "longitude": widget.position.longitude,
+      "latitude": _latitudeController.text.isNotEmpty
+          ? double.parse(_latitudeController.text)
+          : widget.position.latitude,
+      "longitude": _longitudeController.text.isNotEmpty
+          ? double.parse(_longitudeController.text)
+          : widget.position.longitude,
       "tagIds": _selectedTagIds,
     };
 
@@ -92,7 +98,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       debugPrint('Place submitted successfully');
-      Navigator.pop(context, true); // Or navigate as needed
+      Navigator.pop(context, true);
     } else {
       debugPrint('Failed to submit place. Status code: ${response.statusCode}');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -101,7 +107,6 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     }
   }
 
-  // Function to handle image picking
   Future<void> _pickImage() async {
     final selectedImageId = await Navigator.push(
       context,
@@ -120,11 +125,10 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     final selectedTagIds = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TagsPage(initialSelectedTagIds: _selectedTagIds),
-      ),
+          builder: (context) =>
+              TagsPage(initialSelectedTagIds: _selectedTagIds)),
     );
 
-    // Check if 'selectedTagIds' is not null to prevent overwriting with null
     if (selectedTagIds != null) {
       setState(() {
         _selectedTagIds = List.from(selectedTagIds);
@@ -137,66 +141,13 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
         _descriptionController.text.isNotEmpty;
   }
 
-  Future<void> _sendPlaceData(List<int> selectedTagIds) async {
-    if (!_validateInputs()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Title and description are required')),
-      );
-      return;
-    }
-
-    String? authToken = await SecureStorageManager.getAuthToken();
-    if (authToken == null) {
-      debugPrint("Auth token is null");
-      return null;
-    }
-
-    String baseUrl = GlobalConfig().serverUrl;
-    var url = Uri.parse('$baseUrl/api/place');
-
-    Map<String, dynamic> requestBody = {
-      "name": _titleController.text,
-      "description": _descriptionController.text,
-      "latitude": widget.position.latitude,
-      "longitude": widget.position.longitude,
-      "tagIds": selectedTagIds,
-    };
-
-    if (_selectedImageId != null) {
-      requestBody["imageId"] = _selectedImageId;
-    }
-
-    var response = await http.post(
-      url,
-      body: json.encode(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': 'authToken=$authToken',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      debugPrint('Place created successfully');
-      final resBody = json.decode(response.body);
-      debugPrint('Response status code: ${response.statusCode}');
-      debugPrint('Response body: $resBody');
-      Navigator.pop(context, true); // Or navigate as needed
-    } else {
-      final resBody = json.decode(response.body);
-      debugPrint('Failed to create place');
-      debugPrint('Response status code: ${response.statusCode}');
-      debugPrint('Response body: $resBody');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred while creating the place')),
-      );
-    }
-  }
-
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagsController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -208,8 +159,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () =>
-              Navigator.of(context).pop(false), // Place was not created
+          onPressed: () => Navigator.of(context).pop(false),
         ),
         title: Text(
           pageTitle,
@@ -224,11 +174,28 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Latitude: ${widget.position.latitude}, Longitude: ${widget.position.longitude}',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
+            if (widget.placeToEdit != null) ...[
+              TextField(
+                controller: _latitudeController,
+                decoration: InputDecoration(
+                  labelText: 'Latitude',
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _longitudeController,
+                decoration: InputDecoration(
+                  labelText: 'Longitude',
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+              SizedBox(height: 16),
+            ],
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
@@ -252,8 +219,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
               runSpacing: 8.0,
               children: _selectedTagIds.map((tagId) {
                 return Chip(
-                  label: Text(
-                      'Tag $tagId'), // Replace this with the actual tag title
+                  label: Text('Tag $tagId'),
                   deleteIcon: Icon(Icons.cancel),
                   onDeleted: () {
                     setState(() {

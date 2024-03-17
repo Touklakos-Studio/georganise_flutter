@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 class Place {
   final int placeId;
   final double latitude;
@@ -7,6 +9,7 @@ class Place {
   final int? imageId;
   final int userId;
   final List<dynamic> placeTags;
+  final LatLng? position;
 
   Place({
     required this.placeId,
@@ -17,6 +20,7 @@ class Place {
     this.imageId,
     required this.userId,
     required this.placeTags,
+    this.position,
   });
 
   factory Place.fromJson(Map<String, dynamic> json) {
