@@ -87,15 +87,21 @@ class _ImagesPageState extends State<ImagesPage> {
       List<int> imageBytes = await _imageFile!.readAsBytesSync();
       String base64Image = base64Encode(imageBytes);
 
-      var request =
-          http.MultipartRequest('POST', Uri.parse('$baseUrl/api/image'));
-      request.headers['Cookie'] = 'authToken=$authToken';
-      request.fields['name'] = _imageTitleController.text;
-      request.fields['description'] = _imageDescriptionController.text;
-      request.fields['isPublic'] = _isPublic.toString();
-      request.fields['imageValue'] = base64Image;
+      Map<String, dynamic> body = {
+        'name': _imageTitleController.text,
+        'description': _imageDescriptionController.text,
+        'isPublic': _isPublic,
+        'imageValue': base64Image,
+      };
 
-      final response = await request.send();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/image'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+        body: json.encode(body),
+      );
 
       if (response.statusCode == 200) {
         _imageTitleController.clear();
