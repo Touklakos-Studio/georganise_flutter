@@ -165,6 +165,76 @@ class _TagsPageState extends State<TagsPage> {
     }
   }
 
+  Future<void> _editTagDescription(dynamic tag) async {
+    final TextEditingController _editDescriptionController =
+        TextEditingController(text: tag['description']);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Tag Description'),
+          content: TextField(
+            controller: _editDescriptionController,
+            decoration: InputDecoration(hintText: "Enter new description"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Validate'),
+              onPressed: () async {
+                await _updateTagDescription(
+                    tag['tagId'], _editDescriptionController.text);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateTagDescription(int tagId, String newDescription) async {
+    try {
+      String? authToken = await SecureStorageManager.getAuthToken();
+      String baseUrl = GlobalConfig().serverUrl;
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/tag/$tagId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+        body: json.encode({
+          "description": newDescription,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('Tag description updated successfully');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tag description updated successfully')));
+        await _fetchTags(); // Refetch tags to get updated list
+      } else if (response.statusCode == 401) {
+        debugPrint('Unauthorized to update tag description: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Unauthorized to update tag description')));
+      } else {
+        debugPrint('Failed to update tag description: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update tag description')));
+      }
+    } catch (e) {
+      debugPrint('Error updating tag description: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating tag description')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -261,6 +331,12 @@ class _TagsPageState extends State<TagsPage> {
                         ),
                         onPressed: () {
                           _toggleTagSelection(tag['tagId']);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () {
+                          _editTagDescription(tag);
                         },
                       ),
                       IconButton(
