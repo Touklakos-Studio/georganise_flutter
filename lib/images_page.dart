@@ -149,18 +149,106 @@ class _ImagesPageState extends State<ImagesPage> {
         ),
       ),
       actions: <Widget>[
-        TextButton(
-          child: Text('Close'),
-          onPressed: () => setState(() => _showPopup = false),
-        ),
         ElevatedButton(
           child: Text('Select this image'),
           onPressed: () {
             Navigator.pop(context, _selectedImageId);
           },
         ),
+        IconButton(
+          icon: Icon(Icons.edit, color: Colors.green),
+          onPressed: () {
+            _editImage(selectedImage);
+          },
+        ),
+        TextButton(
+          child: Text('Close'),
+          onPressed: () => setState(() => _showPopup = false),
+        ),
       ],
     );
+  }
+
+  void _editImage(dynamic selectedImage) {
+    _imageTitleController.text = selectedImage['name'] ?? '';
+    _imageDescriptionController.text = selectedImage['description'] ?? '';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Image Information'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _imageTitleController,
+                decoration: InputDecoration(
+                  labelText: 'Image Title',
+                ),
+              ),
+              TextField(
+                controller: _imageDescriptionController,
+                decoration: InputDecoration(
+                  labelText: 'Image Description',
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text('Save'),
+              onPressed: () async {
+                await _updateImage(
+                  selectedImage['imageId'],
+                  _imageTitleController.text,
+                  _imageDescriptionController.text,
+                );
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateImage(
+      int imageId, String name, String description) async {
+    try {
+      String baseUrl = GlobalConfig().serverUrl;
+      String? authToken = await SecureStorageManager.getAuthToken();
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/image/$imageId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+        body: json.encode({
+          'name': name,
+          'description': description,
+          'isPublic': true, // You can modify this as needed
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Image information updated successfully
+        debugPrint('Image information updated successfully');
+        await _fetchImages(); // Refresh the list of images
+      } else {
+        debugPrint('Failed to update image information');
+        debugPrint('Response: ${response.body}');
+        debugPrint('Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('An error occurred while updating image information: $e');
+    }
   }
 
   @override
