@@ -61,6 +61,11 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
         _places = data.map((placeData) => Place.fromJson(placeData)).toList();
         _isLoading = false;
       });
+    } else if (response.statusCode == 404) {
+      debugPrint('No places found');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No places found')),
+      );
     } else {
       debugPrint('Failed to fetch places: ${response.body}');
       throw Exception('Failed to fetch places');
@@ -92,7 +97,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
       var response = null;
       try {
         response = await http.get(
-          Uri.parse('$baseUrl/api/places/word/$query'),
+          Uri.parse('$baseUrl/api/place/keyword/$query'),
           headers: {
             'Content-Type': 'application/json',
             'Cookie': 'authToken=$authToken',
@@ -113,13 +118,8 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
             _filteredPlaces =
                 data.map((placeData) => Place.fromJson(placeData)).toList();
           });
-        } else if (response.statusCode == 418) {
-          debugPrint('No places found');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'Error 418 : No static resource api/places/word/$query')),
-          );
+        } else if (response.statusCode == 404) {
+          debugPrint('No places found for the search query: $query');
         } else {
           debugPrint('Failed to search places: ${response.body}');
           throw Exception('Failed to search places');
@@ -150,7 +150,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
         title: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search...',
+            hintText: 'Search places...',
             border: InputBorder.none,
             hintStyle: TextStyle(color: Colors.white),
           ),
@@ -163,14 +163,6 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
             }
           },
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              _searchPlaces(_searchController.text);
-            },
-          ),
-        ],
         backgroundColor: Colors.green,
       ),
       body: SafeArea(
