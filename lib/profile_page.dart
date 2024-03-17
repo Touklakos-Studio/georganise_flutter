@@ -46,10 +46,11 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _deleteAccountAndLogout() async {
-    // Show a confirmation dialog before deleting the account
-    showDialog(
+  Future<bool> _showDeleteConfirmationDialog() async {
+    bool? result = await showDialog<bool>(
       context: context,
+      barrierDismissible:
+          false, // Prevents closing the dialog by tapping outside of it
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Delete Account'),
@@ -57,91 +58,67 @@ class _ProfilePageState extends State<ProfilePage> {
           actions: <Widget>[
             TextButton(
               child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context)
-                    .pop(); // Close the dialog without deleting the account
-              },
+              onPressed: () =>
+                  Navigator.of(context).pop(false), // Explicitly passing false
             ),
             TextButton(
               child: Text('Delete'),
-              onPressed: () async {
-                try {
-                  String baseUrl = GlobalConfig().serverUrl;
-                  // Attempt to retrieve the authToken from secure storage
-                  String? authToken = await SecureStorageManager.getAuthToken();
-
-                  // Make the DELETE request to delete the user account on the backend
-                  final deleteResponse = await http.delete(
-                    Uri.parse(
-                        '$baseUrl/api/user/${_userData?['userId'].toString()}'), // Convert userId to string
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Cookie': 'authToken=$authToken',
-                    },
-                  );
-
-                  // Check the response status code for account deletion
-                  if (deleteResponse.statusCode == 200 ||
-                      deleteResponse.statusCode == 204) {
-                    // Proceed with the logout process
-                    final logoutResponse = await http.post(
-                      Uri.parse('$baseUrl/api/user/logout'),
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Cookie': 'authToken=$authToken',
-                      },
-                    );
-
-                    // Check the response status code for logout
-                    if (logoutResponse.statusCode == 200 ||
-                        logoutResponse.statusCode == 204) {
-                      debugPrint('Logout successful on backend');
-                    } else {
-                      debugPrint(
-                          'Failed to logout on backend. Status code: ${logoutResponse.statusCode}');
-                    }
-
-                    // Regardless of the response, clear the authToken from secure storage
-                    await SecureStorageManager.deleteAuthToken();
-                    debugPrint(
-                        'Auth token deleted successfully from local storage');
-
-                    // Navigate to the WelcomePage and remove all previous routes
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (context) => const WelcomePage()),
-                      (Route<dynamic> route) => false,
-                    );
-                    debugPrint('Account deletion successful on backend');
-                  } else {
-                    debugPrint(
-                        'Failed to delete account on backend. Status code: ${deleteResponse.statusCode}');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to delete account'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  debugPrint(
-                      'An error occurred during account deletion and logout: $e');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'An error occurred during account deletion and logout'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                } finally {
-                  Navigator.of(context)
-                      .pop(); // Close the dialog after deleting the account or handling errors
-                }
-              },
+              onPressed: () =>
+                  Navigator.of(context).pop(true), // Explicitly passing true
             ),
           ],
         );
       },
+    );
+
+    return result ??
+        false; // Ensures a boolean return, defaulting to false if null
+  }
+
+  Future<void> _deleteAccountAndLogout() async {
+    // First, show the delete confirmation dialog and wait for the user's response
+    bool confirmDelete = await _showDeleteConfirmationDialog();
+
+    // If the user confirmed the deletion, proceed
+    if (confirmDelete) {
+      try {
+        String baseUrl = GlobalConfig().serverUrl;
+        String? authToken = await SecureStorageManager.getAuthToken();
+
+        final deleteResponse = await http.delete(
+          Uri.parse('$baseUrl/api/user/${_userData?['userId'].toString()}'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'authToken=$authToken',
+          },
+        );
+
+        // If the account is successfully deleted, navigate to the WelcomePage
+        if (deleteResponse.statusCode == 200 ||
+            deleteResponse.statusCode == 204) {
+          await SecureStorageManager.deleteAuthToken();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomePage()),
+            (Route<dynamic> route) => false,
+          );
+        } else {
+          // If the deletion was not successful, show an error snackbar
+          _showErrorSnackBar('Failed to delete account');
+        }
+      } catch (e) {
+        // Handle any exceptions by showing an error snackbar
+        _showErrorSnackBar(
+            'An error occurred during account deletion and logout');
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -212,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => _deleteAccountAndLogout(),
+                    onPressed: _deleteAccountAndLogout,
                     child: Text('Delete Account'),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
