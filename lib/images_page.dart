@@ -71,53 +71,6 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
-  Future<void> _createImage() async {
-    if (_imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an image')),
-      );
-      return;
-    }
-
-    try {
-      String baseUrl = GlobalConfig().serverUrl;
-
-      String? authToken = await SecureStorageManager.getAuthToken();
-
-      List<int> imageBytes = await _imageFile!.readAsBytesSync();
-      String base64Image = base64Encode(imageBytes);
-
-      Map<String, dynamic> body = {
-        'name': _imageTitleController.text,
-        'description': _imageDescriptionController.text,
-        'isPublic': _isPublic,
-        'imageValue': base64Image,
-      };
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/image'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': 'authToken=$authToken',
-        },
-        body: json.encode(body),
-      );
-
-      if (response.statusCode == 200) {
-        _imageTitleController.clear();
-        _imageDescriptionController.clear();
-        setState(() {
-          _imageFile = null;
-        });
-        await _fetchImages(); // Refresh the list of images
-      } else {
-        debugPrint('Failed to create image');
-      }
-    } catch (e) {
-      debugPrint('An error occurred while creating an image: $e');
-    }
-  }
-
   Widget _buildPopup() {
     if (_selectedImageId == null) return SizedBox.shrink(); // Safety check
 
@@ -226,17 +179,6 @@ class _ImagesPageState extends State<ImagesPage> {
                         ),
                       )
                     : Text("No image selected."),
-              if (_imageFile != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: ElevatedButton(
-                    onPressed: _createImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    child: Text('Upload Image'),
-                  ),
-                ),
               SizedBox(height: 16),
               Text(
                 'Your Images',
@@ -282,8 +224,6 @@ class _ImagesPageState extends State<ImagesPage> {
                             image['description'] ?? 'No Description',
                             style: TextStyle(fontStyle: FontStyle.italic),
                           ),
-                          if (_selectedImageId == image['imageId'])
-                            Icon(Icons.check_circle, color: Colors.green),
                         ],
                       ),
                     );
@@ -293,18 +233,6 @@ class _ImagesPageState extends State<ImagesPage> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_selectedImageId != null) {
-            Navigator.pop(context, _selectedImageId);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Please select an image first')),
-            );
-          }
-        },
-        child: Icon(Icons.check),
       ),
       bottomSheet: _showPopup ? _buildPopup() : null,
     );

@@ -4,7 +4,7 @@ class Place {
   final double longitude;
   final String name;
   final String description;
-  final int imageId;
+  final int? imageId;
   final int userId;
   final List<dynamic> placeTags;
 
@@ -14,7 +14,7 @@ class Place {
     required this.longitude,
     required this.name,
     required this.description,
-    required this.imageId,
+    this.imageId,
     required this.userId,
     required this.placeTags,
   });
@@ -26,7 +26,7 @@ class Place {
       longitude: json['longitude'],
       name: json['name'],
       description: json['description'],
-      imageId: json['imageId'],
+      imageId: json['imageId'] as int?,
       userId: json['userId'],
       placeTags: json['placeTags'] ?? [], // Assuming placeTags is optional
     );
