@@ -79,9 +79,21 @@ class _ImagesPageState extends State<ImagesPage> {
       return;
     }
 
+    // Check if title or description is empty
+    if (_imageTitleController.text.isEmpty ||
+        _imageDescriptionController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Title and description cannot be empty.'),
+          backgroundColor:
+              Colors.red, // Make the background color red to indicate an error
+        ),
+      );
+      return; // Stop execution if validation fails
+    }
+
     try {
       String baseUrl = GlobalConfig().serverUrl;
-
       String? authToken = await SecureStorageManager.getAuthToken();
 
       List<int> imageBytes = await _imageFile!.readAsBytesSync();
@@ -109,6 +121,11 @@ class _ImagesPageState extends State<ImagesPage> {
         setState(() {
           _imageFile = null;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Image created successfully'),
+          ),
+        );
         await _fetchImages(); // Refresh the list of images
       } else {
         debugPrint('Failed to create image');
@@ -215,10 +232,20 @@ class _ImagesPageState extends State<ImagesPage> {
       if (response.statusCode == 200) {
         // Image deleted successfully
         debugPrint('Image deleted successfully');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image deleted successfully'),
+          ),
+        );
         await _fetchImages(); // Refresh the list of images
       } else {
         // Failed to delete image
         debugPrint('Failed to delete image');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete image'),
+          ),
+        );
       }
     } catch (e) {
       // An error occurred while deleting the image
