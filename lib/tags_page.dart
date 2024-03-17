@@ -240,7 +240,7 @@ class _TagsPageState extends State<TagsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Place',
+          'Tags',
           style: TextStyle(
             color: Colors.white,
           ),

@@ -43,12 +43,44 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     if (widget.placeToEdit != null) {
       _titleController.text = widget.placeToEdit!.name;
       _descriptionController.text = widget.placeToEdit!.description;
-      _latitudeController.text =
-          widget.placeToEdit!.latitude.toString(); // Adjusted
-      _longitudeController.text =
-          widget.placeToEdit!.longitude.toString(); // Adjusted
+      _latitudeController.text = widget.placeToEdit!.latitude.toString();
+      _longitudeController.text = widget.placeToEdit!.longitude.toString();
       _selectedImageId = widget.placeToEdit!.imageId;
+
+      // Assume placeTags contains placeTagIds
+      _fetchTagIds(widget.placeToEdit!.placeTags)
+          .then((tagIds) => setState(() => _selectedTagIds = tagIds));
+      debugPrint(_selectedTagIds.toString());
     }
+  }
+
+  Future<List<int>> _fetchTagIds(List<dynamic> placeTagIds) async {
+    List<int> tagIds = [];
+    String baseUrl = GlobalConfig().serverUrl;
+    String? authToken = await SecureStorageManager.getAuthToken();
+
+    for (var placeTag in placeTagIds) {
+      // Correctly extract placeTagId from the map
+      var placeTagId = placeTag['placeTagId']; // Assuming placeTag is a Map
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/tag/placeTag/$placeTagId'),
+        headers: {'Cookie': 'authToken=$authToken'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['tagId'] != null) {
+          tagIds.add(data['tagId']);
+        }
+      } else {
+        // Handle error or add some error logging
+        debugPrint(
+            'Failed to fetch tagId for placeTagId $placeTagId: ${response.body}');
+      }
+    }
+
+    return tagIds;
   }
 
   Future<void> _submitPlaceData() async {
