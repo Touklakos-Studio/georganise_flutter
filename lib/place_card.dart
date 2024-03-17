@@ -71,6 +71,7 @@ class _PlaceCardState extends State<PlaceCard> {
   Future<void> _fetchImage() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null || !mounted) return;
+    if (widget.place.imageId == null) return;
     String baseUrl = GlobalConfig().serverUrl;
     try {
       final response = await http.get(
