@@ -60,6 +60,9 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
           SnackBar(content: Text('Token access right updated successfully')));
       Navigator.of(context).pop(
           true); // Assuming you might have a mechanism to refresh the parent page.
+    } else if (response.statusCode == 401) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unauthorized to update token access right')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update token access right')));
@@ -172,6 +175,9 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
       setState(() {
         widget.tokenDetails.removeWhere((token) => token['tokenId'] == tokenId);
       });
+    } else if (response.statusCode == 401) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unauthorized to delete token')));
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Failed to delete token')));
@@ -186,6 +192,27 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
         ),
       );
     });
+  }
+
+  Future<String> _fetchNickname(int userId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) throw Exception("Auth token is not available");
+
+    String baseUrl = GlobalConfig().serverUrl;
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/user/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['nickname'];
+    } else {
+      throw Exception('Failed to fetch nickname');
+    }
   }
 
   @override
@@ -222,8 +249,34 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                       "Token ID: ${token['tokenId']}",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text(
-                      "Access Right: ${token['accessRight']}\nToken Value: ${token['tokenValue']}",
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Access Right: ${token['accessRight']}"),
+                        Text("Token Value: ${token['tokenValue']}"),
+                        FutureBuilder<String>(
+                          future: _fetchNickname(token['creatorId']),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.done) {
+                              return Text("Creator: ${snapshot.data}");
+                            } else {
+                              return Text("Loading creator...");
+                            }
+                          },
+                        ),
+                        FutureBuilder<String>(
+                          future: _fetchNickname(token['userId']),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.done) {
+                              return Text("User: ${snapshot.data}");
+                            } else {
+                              return Text("Loading user...");
+                            }
+                          },
+                        ),
+                      ],
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -235,7 +288,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                               _copyToClipboard(token['tokenValue']),
                         ),
                         // Conditionally show edit and delete buttons
-                        if (canModify) ...[
+                        if (true) ...[
                           _editTokenAccessRightButton(
                               token['tokenId'], token['accessRight']),
                           _deleteTokenButton(token['tokenId']),
