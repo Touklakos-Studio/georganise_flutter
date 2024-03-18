@@ -261,36 +261,45 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          FloatingActionButton(
-            heroTag: "btn1",
-            onPressed: _showGenerateTokenDialog,
-            child: Icon(Icons.vpn_key),
-            backgroundColor: Colors.green,
-          ),
-          FloatingActionButton(
-            heroTag: "btn2",
-            onPressed: () {
-              fetchTokenDetails().then((tokenDetails) {
-                if (tokenDetails.isNotEmpty) {
-                  _navigateToTokenDetailsPage(tokenDetails);
-                } else {
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              onPressed: _showGenerateTokenDialog,
+              icon: Icon(Icons.vpn_key, color: Colors.white),
+              label: Text('Generate Token'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green, // Text color
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                fetchTokenDetails().then((tokenDetails) {
+                  if (tokenDetails.isNotEmpty) {
+                    _navigateToTokenDetailsPage(tokenDetails);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("No tokens generated for this tag."),
+                    ));
+                  }
+                }).catchError((error) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("No tokens generated for this tag."),
+                    content: Text("Error fetching token details."),
                   ));
-                }
-              }).catchError((error) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("Error fetching token details."),
-                ));
-              });
-            },
-            child: Icon(Icons.visibility),
-            backgroundColor: Colors.blue,
-          ),
-        ],
+                });
+              },
+              icon: Icon(Icons.visibility, color: Colors.white),
+              label: Text('View Tokens'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.blue, // Text color
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
