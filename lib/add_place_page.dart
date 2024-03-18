@@ -53,6 +53,7 @@ class _AddTokenPageState extends State<AddTokenPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Token sent successfully')),
         );
+        Navigator.pop(context, true); // Add this line
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to send token')),

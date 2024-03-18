@@ -85,9 +85,27 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
 
     if (response.statusCode == 200) {
       debugPrint('Token generated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Token generated successfully'),
+        ),
+      );
       // Optionally, show a success message or handle the token
+    } else if (response.statusCode == 401) {
+      debugPrint('Failed to generate token: ${response.body}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('You are not authorized to generate a token on this tag'),
+        ),
+      );
     } else {
       debugPrint('Failed to generate token: ${response.body}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate token. Please try again.'),
+        ),
+      );
       // Optionally, show an error message
     }
   }

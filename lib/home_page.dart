@@ -249,15 +249,12 @@ class _HomePageState extends State<HomePage> {
               icon:
                   Icon(Icons.add, color: Colors.white), // Add the "Plus" button
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AddTokenPage()),
-                ).then((value) {
-                  // Check if the value is true, indicating a successful place creation
-                  debugPrint("Returned from AddPlacePage with value: $value");
-                  if (value == true) {
-                    // Refresh places and markers on the map
-                    _fetchUserIdAndPlaces();
+                Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => AddTokenPage()))
+                    .then((result) {
+                  // Check if the result is true indicating that a token was sent successfully
+                  if (result == true) {
+                    // Refresh your HomePage content here if necessary
                   }
                 });
               },
