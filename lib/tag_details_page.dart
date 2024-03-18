@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
+import 'token_details_page.dart';
 
 class TagDetailsPage extends StatefulWidget {
   final int tagId;
@@ -62,14 +63,120 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     }
   }
 
+  void _generateToken(String accessRight) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      return;
+    }
+    String baseUrl = GlobalConfig().serverUrl;
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/token/new'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+      body: jsonEncode({
+        "accessRight": accessRight,
+        "userId": null,
+        "tagId": widget.tagId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint('Token generated successfully');
+      // Optionally, show a success message or handle the token
+    } else {
+      debugPrint('Failed to generate token: ${response.body}');
+      // Optionally, show an error message
+    }
+  }
+
+  void _showGenerateTokenDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        bool _isWriter = false; // Default access right
+        return AlertDialog(
+          title: Text("Generate Token"),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text("Select Access Right:"),
+                  SwitchListTile(
+                    title: Text(_isWriter ? "Writer" : "Reader"),
+                    value: _isWriter,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _isWriter = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text('Generate Token'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _generateToken(_isWriter ? "WRITER" : "READER");
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<List<dynamic>> fetchTokenDetails() async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      throw Exception("Auth token is null");
+    }
+    String baseUrl = GlobalConfig().serverUrl;
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/token/tag/${widget.tagId}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint('Token details fetched successfully');
+      debugPrint(response.body);
+      return json.decode(response.body);
+    } else {
+      debugPrint('Failed to fetch token details: ${response.body}');
+      return [];
+    }
+  }
+
+  void _navigateToTokenDetailsPage(List<dynamic> tokenDetails) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TokenDetailsPage(tokenDetails: tokenDetails),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Lighter background color
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text("Tag Details", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green, // Modern teal color
-        elevation: 0, // Remove shadow for a flat design
+        backgroundColor: Colors.green,
+        elevation: 0,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchTagDetails(),
@@ -82,15 +189,14 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                   style: TextStyle(color: Colors.red)),
             );
           } else {
-            // Assuming the data is received correctly
             var data = snapshot.data!;
             return SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Card(
-                  elevation: 2, // Slight shadow for depth
+                  elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16), // Rounded corners
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
@@ -107,51 +213,44 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                                   TextStyle(fontSize: 16, color: Colors.grey)),
                         ),
                         Divider(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text('Description',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                        ),
-                        Text(data["description"],
+                        Text('Description: ${data["description"]}',
                             style: TextStyle(fontSize: 16)),
-                        SizedBox(height: 16),
+                        SizedBox(height: 20),
                         Text('Associated Places:',
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
-                        Column(
-                          children: data["placeTags"].map<Widget>((tag) {
-                            return FutureBuilder<Map<String, dynamic>>(
-                              future: fetchPlaceDetails(tag["placeTagId"]),
-                              builder: (context, placeSnapshot) {
-                                if (placeSnapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return ListTile(
-                                    leading: CircularProgressIndicator(),
-                                    title: Text('Loading place details...'),
-                                  );
-                                } else if (placeSnapshot.hasError) {
-                                  return ListTile(
-                                    leading:
-                                        Icon(Icons.error, color: Colors.red),
-                                    title: Text('Error loading place details'),
-                                  );
-                                } else {
-                                  var placeData = placeSnapshot.data!;
-                                  return ListTile(
-                                    leading:
-                                        Icon(Icons.place, color: Colors.green),
-                                    title: Text(placeData["name"],
-                                        style: TextStyle(fontSize: 16)),
-                                    subtitle: Text(
-                                        'Description: ${placeData["description"]}\nLocation: ${placeData["latitude"]}, ${placeData["longitude"]}',
-                                        style: TextStyle(fontSize: 14)),
-                                  );
-                                }
-                              },
-                            );
-                          }).toList(),
-                        ),
+                        SizedBox(height: 8),
+                        ...data["placeTags"].map<Widget>((tag) {
+                          return FutureBuilder<Map<String, dynamic>>(
+                            future: fetchPlaceDetails(tag["placeTagId"]),
+                            builder: (context, placeSnapshot) {
+                              if (placeSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return ListTile(
+                                  leading: CircularProgressIndicator(),
+                                  title: Text('Loading place details...'),
+                                );
+                              } else if (placeSnapshot.hasError) {
+                                return ListTile(
+                                  leading: Icon(Icons.error, color: Colors.red),
+                                  title: Text('Error loading place details'),
+                                );
+                              } else {
+                                var placeData = placeSnapshot.data!;
+                                return ListTile(
+                                  leading:
+                                      Icon(Icons.place, color: Colors.green),
+                                  title: Text(placeData["name"],
+                                      style: TextStyle(fontSize: 16)),
+                                  subtitle: Text(
+                                    'Description: ${placeData["description"]}\nLocation: ${placeData["latitude"]}, ${placeData["longitude"]}',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        }).toList(),
                       ],
                     ),
                   ),
@@ -160,6 +259,38 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
             );
           }
         },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          FloatingActionButton(
+            heroTag: "btn1",
+            onPressed: _showGenerateTokenDialog,
+            child: Icon(Icons.vpn_key),
+            backgroundColor: Colors.green,
+          ),
+          FloatingActionButton(
+            heroTag: "btn2",
+            onPressed: () {
+              fetchTokenDetails().then((tokenDetails) {
+                if (tokenDetails.isNotEmpty) {
+                  _navigateToTokenDetailsPage(tokenDetails);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("No tokens generated for this tag."),
+                  ));
+                }
+              }).catchError((error) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("Error fetching token details."),
+                ));
+              });
+            },
+            child: Icon(Icons.visibility),
+            backgroundColor: Colors.blue,
+          ),
+        ],
       ),
     );
   }
