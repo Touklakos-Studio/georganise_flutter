@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'create_place_page.dart';
 import 'package:latlong2/latlong.dart';
+import 'tag_details_page.dart';
 
 class PlaceCard extends StatefulWidget {
   final Place place;
@@ -83,24 +84,25 @@ class _PlaceCardState extends State<PlaceCard> {
     }
   }
 
-  Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
-    List<String> tagNames = [];
+  Future<List<Map<String, dynamic>>> _fetchTagNames(
+      List<dynamic> placeTags) async {
+    List<Map<String, dynamic>> tagDetails = [];
     for (var tag in placeTags) {
-      int tagId = tag['placeTagId'];
-      String? tagName = await _fetchTagName(tagId);
+      int placeTagId = tag['placeTagId'];
+      String? tagName = await _fetchTagName(placeTagId);
       tagName = tagName ?? "Unknown Tag";
-      tagNames.add(tagName);
+      tagDetails.add({"placeTagId": placeTagId, "tagName": tagName});
     }
-    return tagNames;
+    return tagDetails;
   }
 
-  Future<String?> _fetchTagName(int tagId) async {
+  Future<String?> _fetchTagName(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) return "Unknown Tag";
     String baseUrl = GlobalConfig().serverUrl;
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/tag/placeTag/$tagId'),
+        Uri.parse('$baseUrl/api/tag/placeTag/$placeTagId'),
         headers: {
           'Content-Type': 'application/json',
           'Cookie': 'authToken=$authToken',
@@ -222,6 +224,50 @@ class _PlaceCardState extends State<PlaceCard> {
     );
   }
 
+  Future<int?> _fetchTagIdFromPlaceTagId(int placeTagId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      return null;
+    }
+    String baseUrl = GlobalConfig().serverUrl;
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/tag/placeTag/$placeTagId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['tagId']; // Assuming the response has a 'tagId' field
+    } else {
+      debugPrint('Failed to fetch tagId from placeTagId: ${response.body}');
+      return null; // Or handle the error as you see fit
+    }
+  }
+
+  Future<Map<String, dynamic>> _fetchTagDetails(int tagId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) throw Exception("Auth token is null");
+    String baseUrl = GlobalConfig().serverUrl;
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/tag/$tagId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      debugPrint(response.statusCode.toString());
+      debugPrint('Failed to fetch tag details: ${response.body}');
+      throw Exception('Failed to fetch tag details');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -259,27 +305,43 @@ class _PlaceCardState extends State<PlaceCard> {
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  FutureBuilder<List<String>>(
+                  FutureBuilder<List<Map<String, dynamic>>>(
                     future: _fetchTagNames(widget.place.placeTags),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<List<String>> snapshot) {
+                    builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return CircularProgressIndicator();
                       } else if (snapshot.hasData) {
                         return Padding(
-                          padding: const EdgeInsets.all(
-                              10.0), // Add padding around the Wrap widget
+                          padding: const EdgeInsets.all(10.0),
                           child: Wrap(
-                            runSpacing:
-                                4.0, // Vertical space between lines of tags
+                            spacing: 8.0, // Space between chips
+                            runSpacing: 4.0, // Space between lines
                             children: snapshot.data!
-                                .map((tag) => Chip(
-                                      label: Text(tag,
-                                          style:
-                                              TextStyle(color: Colors.white)),
-                                      backgroundColor: Colors.green,
-                                      padding: const EdgeInsets.all(
-                                          4.0), // Add padding inside each Chip
+                                .map((tagDetail) => GestureDetector(
+                                      onTap: () async {
+                                        // Assuming _fetchTagIdFromPlaceTagId returns the correct tagId
+                                        int? tagId =
+                                            await _fetchTagIdFromPlaceTagId(
+                                                tagDetail['placeTagId']);
+                                        if (tagId != null) {
+                                          // Navigate to TagDetailsPage with fetched tag details
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                            builder: (context) =>
+                                                TagDetailsPage(
+                                              // Assuming TagDetailsPage takes a tagId argument
+                                              tagId: tagId,
+                                            ),
+                                          ));
+                                        } else {
+                                          debugPrint(
+                                              "Failed to fetch tagId from placeTagId");
+                                        }
+                                      },
+                                      child: Chip(
+                                        label: Text(tagDetail['tagName']),
+                                        backgroundColor: Colors.green,
+                                      ),
                                     ))
                                 .toList(),
                           ),
