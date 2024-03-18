@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
+import 'package:flutter/services.dart';
 
 class TokenDetailsPage extends StatefulWidget {
   final List<dynamic> tokenDetails;
@@ -177,6 +178,16 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     }
   }
 
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Token copied to clipboard'),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,7 +213,6 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
               itemCount: _filteredTokenDetails.length,
               itemBuilder: (BuildContext context, int index) {
                 var token = _filteredTokenDetails[index];
-                // Determine if the current user can edit/delete this token
                 bool canModify = token['creatorId'] == token['userId'];
 
                 return Card(
@@ -215,18 +225,23 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                     subtitle: Text(
                       "Access Right: ${token['accessRight']}\nToken Value: ${token['tokenValue']}",
                     ),
-                    trailing: canModify
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Edit button is shown only if canModify is true
-                              _editTokenAccessRightButton(
-                                  token['tokenId'], token['accessRight']),
-                              // Delete button is shown only if canModify is true
-                              _deleteTokenButton(token['tokenId']),
-                            ],
-                          )
-                        : null, // If canModify is false, no buttons are shown
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Copy to Clipboard button is shown to everyone
+                        IconButton(
+                          icon: Icon(Icons.content_copy, color: Colors.grey),
+                          onPressed: () =>
+                              _copyToClipboard(token['tokenValue']),
+                        ),
+                        // Conditionally show edit and delete buttons
+                        if (canModify) ...[
+                          _editTokenAccessRightButton(
+                              token['tokenId'], token['accessRight']),
+                          _deleteTokenButton(token['tokenId']),
+                        ],
+                      ],
+                    ),
                     isThreeLine: true,
                   ),
                 );
