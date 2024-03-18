@@ -78,7 +78,7 @@ class _AddTokenPageState extends State<AddTokenPage> {
             children: <Widget>[
               TextFormField(
                 decoration: const InputDecoration(
-                  labelText: 'Token ID',
+                  labelText: 'Token',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(),
