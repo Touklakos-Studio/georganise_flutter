@@ -15,6 +15,28 @@ class TokenDetailsPage extends StatefulWidget {
 }
 
 class _TokenDetailsPageState extends State<TokenDetailsPage> {
+  TextEditingController _searchController = TextEditingController();
+  List<dynamic> _filteredTokenDetails = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredTokenDetails = widget.tokenDetails;
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _filteredTokenDetails = widget.tokenDetails
+          .where((token) =>
+              token['tokenId']
+                  .toString()
+                  .contains(_searchController.text.trim()) ||
+              _searchController.text.trim().isEmpty)
+          .toList();
+    });
+  }
+
   Future<void> _updateTokenAccessRight(int tokenId, String accessRight) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -97,28 +119,49 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
       appBar: AppBar(
         title: Text('Token Details'),
         backgroundColor: Colors.green,
+        actions: <Widget>[],
       ),
-      body: ListView.builder(
-        itemCount: widget.tokenDetails.length,
-        itemBuilder: (BuildContext context, int index) {
-          var token = widget.tokenDetails[index];
-          bool hideEditButton = token['creatorId'] != token['userId'];
-          return Card(
-            margin: EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text("Token ID: ${token['tokenId']}",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(
-                  "Access Right: ${token['accessRight']}\nToken Value: ${token['tokenValue']}"),
-              trailing: hideEditButton
-                  ? null
-                  : _editTokenAccessRightButton(
-                      token['tokenId'], token['accessRight']),
-              isThreeLine: true,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search by Token ID',
+                suffixIcon: Icon(Icons.search),
+              ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filteredTokenDetails.length,
+              itemBuilder: (BuildContext context, int index) {
+                var token = _filteredTokenDetails[index];
+                // Token ListTile...
+                return Card(
+                  margin: EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text("Token ID: ${token['tokenId']}",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                        "Access Right: ${token['accessRight']}\nToken Value: ${token['tokenValue']}"),
+                    trailing: _editTokenAccessRightButton(
+                        token['tokenId'], token['accessRight']),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
