@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/add_place_page.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'create_place_page.dart';
@@ -250,7 +251,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddPlacePage()),
+                  MaterialPageRoute(builder: (context) => AddTokenPage()),
                 ).then((value) {
                   // Check if the value is true, indicating a successful place creation
                   debugPrint("Returned from AddPlacePage with value: $value");
