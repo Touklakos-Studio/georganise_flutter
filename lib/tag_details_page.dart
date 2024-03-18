@@ -18,6 +18,9 @@ class TagDetailsPage extends StatefulWidget {
 }
 
 class _TagDetailsPageState extends State<TagDetailsPage> {
+  String _nickname = '';
+  bool _includeNickname = false;
+
   Future<Map<String, dynamic>> fetchTagDetails() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -70,43 +73,51 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
       return;
     }
     String baseUrl = GlobalConfig().serverUrl;
+
+    // Prepare the request body with conditionally included nickname
+    Map<String, dynamic> requestBody = {
+      "accessRight": accessRight,
+      "userId": null, // Adjust according to your API's requirements
+      "tagId": widget.tagId,
+    };
+    if (_includeNickname && _nickname.isNotEmpty) {
+      requestBody['nickname'] = _nickname; // Include the nickname if applicable
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/api/token/new'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',
       },
-      body: jsonEncode({
-        "accessRight": accessRight,
-        "userId": null,
-        "tagId": widget.tagId,
-      }),
+      body: jsonEncode(requestBody),
     );
 
-    if (response.statusCode == 200) {
-      debugPrint('Token generated successfully');
+    // Response handling remains the same
+    if (response.statusCode == 200 &&
+        (_includeNickname && _nickname.isNotEmpty)) {
+      debugPrint('Token generated and added to user successfully');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Token generated successfully'),
-        ),
+            content: Text('Token generated and added to user successfully')),
       );
-      // Optionally, show a success message or handle the token
+    } else if (response.statusCode == 200) {
+      debugPrint('Token generated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Token generated successfully')),
+      );
     } else if (response.statusCode == 401) {
       debugPrint('Failed to generate token: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('You are not authorized to generate a token on this tag'),
-        ),
+            content:
+                Text('You are not authorized to generate a token on this tag')),
       );
     } else {
       debugPrint('Failed to generate token: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to generate token. Please try again.'),
-        ),
+        SnackBar(content: Text('Failed to generate token. Please try again.')),
       );
-      // Optionally, show an error message
     }
   }
 
@@ -119,20 +130,38 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
           title: Text("Generate Token"),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text("Select Access Right:"),
-                  SwitchListTile(
-                    title: Text(_isWriter ? "Writer" : "Reader"),
-                    value: _isWriter,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isWriter = value;
-                      });
-                    },
-                  ),
-                ],
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text("Select Access Right:"),
+                    SwitchListTile(
+                      title: Text(_isWriter ? "Writer" : "Reader"),
+                      value: _isWriter,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isWriter = value;
+                        });
+                      },
+                    ),
+                    SwitchListTile(
+                      title: Text("Include Nickname"),
+                      value: _includeNickname,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _includeNickname = value;
+                        });
+                      },
+                    ),
+                    if (_includeNickname)
+                      TextField(
+                        decoration: InputDecoration(labelText: 'Nickname'),
+                        onChanged: (value) {
+                          _nickname = value;
+                        },
+                      ),
+                  ],
+                ),
               );
             },
           ),

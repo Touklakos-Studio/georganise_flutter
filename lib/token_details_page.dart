@@ -197,7 +197,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
   Future<String> _fetchNickname(int? userId) async {
     // Check if userId is null and return a default nickname value
     if (userId == null) {
-      return "Unknown";
+      return "None";
     }
 
     String? authToken = await SecureStorageManager.getAuthToken();
