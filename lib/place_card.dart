@@ -360,10 +360,11 @@ class _PlaceCardState extends State<PlaceCard> {
                                 if (result == true) {
                                   widget
                                       .refreshSearch(); // Reload the list to reflect any changes
+                                  _fetchImage(); // Refetch the image in case it has been updated
                                 }
                               }
                             : null,
-                      )
+                      ),
                     ],
                   ),
                 ],

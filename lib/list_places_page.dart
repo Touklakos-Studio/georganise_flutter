@@ -178,18 +178,29 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   }
 
   void refreshSearch() {
-    // Clear the filtered places to reset the search
     setState(() {
-      _filteredPlaces.clear();
+      _isLoading = true; // Show loading indicator while fetching
     });
 
-    // If there's text in the search bar, perform the search; otherwise, fetch all places again
-    if (_searchController.text.isNotEmpty) {
-      _searchPlaces(_searchController.text.trim());
-    } else {
-      // If the search query is empty, refetch all places related to the user
-      _fetchUserIdAndPlaces();
-    }
+    // Optionally clear the search field or handle it differently based on your UX design
+    //_searchController.clear();
+
+    _fetchUserIdAndPlaces().then((_) {
+      // If you are maintaining a separate list for search results,
+      // you might want to clear it or handle it appropriately here
+      if (_searchController.text.isNotEmpty) {
+        _searchPlaces(_searchController.text.trim());
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }).catchError((error) {
+      debugPrint("Error refreshing places: $error");
+      setState(() {
+        _isLoading = false;
+      });
+    });
   }
 
   @override
