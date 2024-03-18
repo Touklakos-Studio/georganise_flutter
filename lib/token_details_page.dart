@@ -194,7 +194,12 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     });
   }
 
-  Future<String> _fetchNickname(int userId) async {
+  Future<String> _fetchNickname(int? userId) async {
+    // Check if userId is null and return a default nickname value
+    if (userId == null) {
+      return "Unknown";
+    }
+
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) throw Exception("Auth token is not available");
 
@@ -211,7 +216,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
       final data = json.decode(response.body);
       return data['nickname'];
     } else {
-      throw Exception('Failed to fetch nickname');
+      throw Exception('Failed to fetch user nickname');
     }
   }
 
