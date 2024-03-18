@@ -113,6 +113,70 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
   }
 
+  Widget _deleteTokenButton(int tokenId) {
+    return IconButton(
+      icon: Icon(Icons.delete, color: Colors.red),
+      onPressed: () => _showDeleteConfirmation(tokenId),
+    );
+  }
+
+  void _showDeleteConfirmation(int tokenId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Token"),
+          content: Text("Are you sure you want to delete this token?"),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                _deleteToken(tokenId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteToken(int tokenId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Auth token is not available")));
+      return;
+    }
+
+    String baseUrl = GlobalConfig().serverUrl;
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/token/$tokenId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Token deleted successfully')));
+      // Optionally refresh the list or navigate back
+      setState(() {
+        widget.tokenDetails.removeWhere((token) => token['tokenId'] == tokenId);
+      });
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to delete token')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,16 +202,31 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
               itemCount: _filteredTokenDetails.length,
               itemBuilder: (BuildContext context, int index) {
                 var token = _filteredTokenDetails[index];
-                // Token ListTile...
+                // Determine if the current user can edit/delete this token
+                bool canModify = token['creatorId'] == token['userId'];
+
                 return Card(
                   margin: EdgeInsets.all(8.0),
                   child: ListTile(
-                    title: Text("Token ID: ${token['tokenId']}",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(
+                      "Token ID: ${token['tokenId']}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Text(
-                        "Access Right: ${token['accessRight']}\nToken Value: ${token['tokenValue']}"),
-                    trailing: _editTokenAccessRightButton(
-                        token['tokenId'], token['accessRight']),
+                      "Access Right: ${token['accessRight']}\nToken Value: ${token['tokenValue']}",
+                    ),
+                    trailing: canModify
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Edit button is shown only if canModify is true
+                              _editTokenAccessRightButton(
+                                  token['tokenId'], token['accessRight']),
+                              // Delete button is shown only if canModify is true
+                              _deleteTokenButton(token['tokenId']),
+                            ],
+                          )
+                        : null, // If canModify is false, no buttons are shown
                     isThreeLine: true,
                   ),
                 );
