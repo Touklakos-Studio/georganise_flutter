@@ -28,11 +28,59 @@ class _PlaceCardState extends State<PlaceCard> {
   bool _showUsername = false;
   String? _userName;
   Uint8List? _imageData;
+  String? _currentUserNickname;
 
   @override
   void initState() {
     super.initState();
+    _initializeData();
     _fetchImage();
+    _fetchCurrentUserData(); // Fetch the current user's data
+  }
+
+  void _initializeData() async {
+    await _fetchUserNameForPlace();
+    // If there are other data initialization steps, include them here
+  }
+
+  Future<void> _fetchUserNameForPlace() async {
+    String? userName = await _fetchUserName(widget.place.userId);
+    if (mounted) {
+      setState(() {
+        _userName = userName;
+      });
+    }
+  }
+
+  Future<void> _fetchCurrentUserData() async {
+    try {
+      String? authToken = await SecureStorageManager.getAuthToken();
+      if (authToken == null) {
+        debugPrint("Auth token is null");
+        return;
+      }
+      String baseUrl = GlobalConfig().serverUrl;
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/user/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _currentUserNickname = data['nickname'];
+            debugPrint("Current user nickname: $_currentUserNickname");
+          });
+        }
+      } else {
+        debugPrint('Failed to fetch current user data: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('An error occurred while fetching current user data: $e');
+    }
   }
 
   Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
@@ -112,6 +160,8 @@ class _PlaceCardState extends State<PlaceCard> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        debugPrint(
+            "Fetched nickname for user ${widget.place.userId}: ${data['nickname']}");
         return data['nickname'];
       } else {
         debugPrint('Failed to fetch user name: ${response.body}');
@@ -288,27 +338,31 @@ class _PlaceCardState extends State<PlaceCard> {
                       IconButton(
                         icon: Icon(Icons.delete),
                         color: Colors.red,
-                        onPressed: _deletePlace,
+                        onPressed: _currentUserNickname == _userName
+                            ? _deletePlace
+                            : null,
                       ),
                       IconButton(
                         icon: Icon(Icons.edit),
-                        onPressed: () async {
-                          final bool? result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CreatePlacePage(
-                                position: LatLng(widget.place.latitude,
-                                    widget.place.longitude),
-                                placeToEdit: widget.place,
-                              ),
-                            ),
-                          );
-
-                          if (result == true) {
-                            widget
-                                .refreshSearch(); // Reload the list to reflect any changes
-                          }
-                        },
+                        color: Colors.green, // Set the icon color to green
+                        onPressed: _currentUserNickname == _userName
+                            ? () async {
+                                final bool? result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CreatePlacePage(
+                                      position: LatLng(widget.place.latitude,
+                                          widget.place.longitude),
+                                      placeToEdit: widget.place,
+                                    ),
+                                  ),
+                                );
+                                if (result == true) {
+                                  widget
+                                      .refreshSearch(); // Reload the list to reflect any changes
+                                }
+                              }
+                            : null,
                       )
                     ],
                   ),
