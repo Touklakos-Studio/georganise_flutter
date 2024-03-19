@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert'; // For using jsonEncode
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
+import 'package:crypto/crypto.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,6 +25,10 @@ class _LoginPageState extends State<LoginPage> {
     if (isValid == true) {
       _formKey.currentState?.save();
 
+      // Hash the password with SHA256
+      var bytes = utf8.encode(_password); // data being hashed
+      var hashedPassword = sha256.convert(bytes).toString();
+
       var response = null;
       try {
         response = await http.post(
@@ -31,7 +36,7 @@ class _LoginPageState extends State<LoginPage> {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': _email,
-            'password': _password,
+            'password': hashedPassword,
           }),
         );
       } catch (e) {

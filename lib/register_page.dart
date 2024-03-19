@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert'; // For using jsonEncode
 import 'secure_storage_manager.dart';
 import 'global_config.dart';
+import 'package:crypto/crypto.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,6 +15,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
   String _nickname = '';
   String _email = '';
   String _password = '';
@@ -27,6 +29,10 @@ class _RegisterPageState extends State<RegisterPage> {
     if (isValid == true) {
       _formKey.currentState?.save();
 
+      // Hash the password with SHA256
+      var bytes = utf8.encode(_password); // data being hashed
+      var hashedPassword = sha256.convert(bytes).toString();
+
       var response = null;
       try {
         response = await http.post(
@@ -35,7 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
           body: jsonEncode({
             'nickname': _nickname,
             'email': _email,
-            'password': _password,
+            'password': hashedPassword,
           }),
         );
       } catch (e) {
@@ -139,6 +145,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 keyboardType: TextInputType.emailAddress,
                 onSaved: (value) => _email = value!,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an email address';
+                  } else if (!emailRegex.hasMatch(value)) {
+                    return 'Please enter a valid email address';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
