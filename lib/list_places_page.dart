@@ -16,11 +16,12 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   List<Place> _filteredPlaces = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
+  int _searchKey = DateTime.now().millisecondsSinceEpoch;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserIdAndPlaces();
+    _fetchPlaces();
   }
 
   String baseUrl = GlobalConfig().serverUrl;
@@ -45,10 +46,10 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     }
   }
 
-  Future<void> _fetchPlaces(int userId) async {
+  Future<void> _fetchPlaces() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/place/user/$userId'),
+      Uri.parse('$baseUrl/api/place'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',
@@ -72,23 +73,6 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     }
   }
 
-  Future<void> _fetchUserIdAndPlaces() async {
-    try {
-      final int? userId = await _fetchUserId(); // userId can be null.
-      if (userId != null) {
-        await _fetchPlaces(
-            userId); // _fetchPlaces is now only called with a non-null userId.
-      } else {
-        debugPrint('User ID is null.');
-        // Handle the case where the user ID couldn't be fetched. Maybe show an error message.
-      }
-    } catch (e) {
-      debugPrint('Error fetching places: $e');
-      setState(() => _isLoading = false);
-      // Optionally, show an error message to the user.
-    }
-  }
-
   Future<void> _searchPlaces(String query) async {
     final int? userId = await _fetchUserId();
     if (userId != null) {
@@ -109,6 +93,8 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
               data.map((placeData) => Place.fromJson(placeData)).toList());
           setState(() {
             _filteredPlaces = placesWithTags;
+            _searchKey = DateTime.now()
+                .millisecondsSinceEpoch; // Update the key to force rebuild of PlaceCards.
           });
         } else if (response.statusCode == 404) {
           debugPrint('No places found for the search query: $query');
@@ -171,10 +157,15 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   }
 
   void _clearSearch() {
+    /*
     setState(() {
       _searchController.clear();
       _filteredPlaces.clear();
     });
+  */
+    _searchController.clear();
+    _filteredPlaces.clear();
+    _fetchPlaces(); // Fetch all places again
   }
 
   void refreshSearch() {
@@ -185,7 +176,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     // Optionally clear the search field or handle it differently based on your UX design
     //_searchController.clear();
 
-    _fetchUserIdAndPlaces().then((_) {
+    _fetchPlaces().then((_) {
       // If you are maintaining a separate list for search results,
       // you might want to clear it or handle it appropriately here
       if (_searchController.text.isNotEmpty) {
@@ -215,9 +206,11 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
         backgroundColor: Colors.green,
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () => _searchPlaces(_searchController.text.trim()),
-          ),
+              icon: Icon(Icons.search),
+              onPressed: () {
+                _searchPlaces(_searchController.text.trim());
+                _fetchPlaces();
+              }),
         ],
       ),
       body: SafeArea(
@@ -240,6 +233,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                 onSubmitted: (query) {
                   if (query.isNotEmpty) {
                     _searchPlaces(query);
+                    _fetchPlaces();
                   } else {
                     refreshSearch(); // Clear search and show all places
                   }
@@ -260,12 +254,17 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                         return Column(
                           children: [
                             PlaceCard(
-                              place: place,
+                              key: ValueKey('$_searchKey-${place.placeId}'),
+                              place: _filteredPlaces.isNotEmpty
+                                  ? _filteredPlaces[index]
+                                  : _places[index],
                               onPlaceDeleted: () => setState(() =>
                                   _places.removeWhere(
                                       (p) => p.placeId == place.placeId)),
-                              refreshSearch:
-                                  refreshSearch, // Pass the method here
+                              refreshSearch: () {
+                                _searchPlaces(_searchController.text
+                                    .trim()); // Optionally refresh the search
+                              }, // Pa  ss the method here
                             ),
                             Divider(color: Colors.grey),
                           ],

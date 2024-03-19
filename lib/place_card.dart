@@ -17,9 +17,11 @@ class PlaceCard extends StatefulWidget {
       refreshSearch; // Add this callback for refreshing the search
 
   PlaceCard(
-      {required this.place,
+      {Key? key,
+      required this.place,
       required this.onPlaceDeleted,
-      required this.refreshSearch});
+      required this.refreshSearch})
+      : super(key: key);
 
   @override
   _PlaceCardState createState() => _PlaceCardState();
@@ -401,7 +403,11 @@ class _PlaceCardState extends State<PlaceCard> {
                         icon: Icon(Icons.delete),
                         color: Colors.red,
                         onPressed: _currentUserNickname == _userName
-                            ? _deletePlace
+                            ? () {
+                                _deletePlace();
+                                widget
+                                    .refreshSearch(); // Refresh the search/list
+                              }
                             : null,
                       ),
                       IconButton(
@@ -420,9 +426,9 @@ class _PlaceCardState extends State<PlaceCard> {
                                   ),
                                 );
                                 if (result == true) {
+                                  _fetchImage(); // Refetch the image in case it has been updated
                                   widget
                                       .refreshSearch(); // Reload the list to reflect any changes
-                                  _fetchImage(); // Refetch the image in case it has been updated
                                 }
                               }
                             : null,
