@@ -30,11 +30,27 @@ class _HomePageState extends State<HomePage> {
   List<Place> _places = [];
   bool _isLoading = true;
   Timer? _locationTimer;
+  Timer? _placesFetchTimer;
   bool _isFetchingLocation = false;
 
   @override
+  void initState() {
+    super.initState();
+    _fetchUserIdAndPlaces();
+
+    // Initialize the timer to fetch places every minute
+    _placesFetchTimer = Timer.periodic(Duration(minutes: 1), (Timer t) async {
+      final int? userId = await _fetchUserId();
+      if (userId != null) {
+        await _fetchPlaces(userId);
+      }
+    });
+  }
+
+  @override
   void dispose() {
-    _locationTimer?.cancel(); // Cancel the timer
+    _locationTimer?.cancel(); // Cancel the location timer
+    _placesFetchTimer?.cancel(); // Cancel the places fetch timer
     super.dispose();
   }
 
@@ -257,12 +273,6 @@ class _HomePageState extends State<HomePage> {
       debugPrint('Failed to fetch tag name: $e');
     }
     return "Unknown Tag"; // Return "Unknown Tag" if fetch fails
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserIdAndPlaces();
   }
 
   Future<void> _logoutUser() async {
@@ -561,7 +571,9 @@ class _HomePageState extends State<HomePage> {
 
                 if (result != null && result == true) {
                   _fetchUserIdAndPlaces(); // Refresh markers if a new place was successfully created
-                  _updateUserLocation();
+                  if (_locationTimer != null) {
+                    await _updateUserLocation();
+                  }
                 } else if (result == false) {
                   if (mounted) {
                     setState(() {
