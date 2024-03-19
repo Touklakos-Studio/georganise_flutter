@@ -74,6 +74,12 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   }
 
   Future<void> _searchPlaces(String query) async {
+    if (query.isEmpty) {
+      // If the search query is empty, show all places
+      _clearSearch();
+      return;
+    }
+
     final int? userId = await _fetchUserId();
     if (userId != null) {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -157,15 +163,11 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   }
 
   void _clearSearch() {
-    /*
     setState(() {
       _searchController.clear();
       _filteredPlaces.clear();
+      _fetchPlaces(); // Fetch all places again
     });
-  */
-    _searchController.clear();
-    _filteredPlaces.clear();
-    _fetchPlaces(); // Fetch all places again
   }
 
   void refreshSearch() {

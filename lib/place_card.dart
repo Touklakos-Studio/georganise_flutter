@@ -426,9 +426,9 @@ class _PlaceCardState extends State<PlaceCard> {
                                   ),
                                 );
                                 if (result == true) {
-                                  _fetchImage(); // Refetch the image in case it has been updated
+                                  _fetchImage(); // Refetch the image in case it has been updated.
                                   widget
-                                      .refreshSearch(); // Reload the list to reflect any changes
+                                      .refreshSearch(); // Trigger the refresh of the search or place list.
                                 }
                               }
                             : null,
