@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
     String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/place/user/$userId'),
+      Uri.parse('$baseUrl/api/place'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': 'authToken=$authToken',
