@@ -116,6 +116,8 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
 
     if (_selectedTagIds.isNotEmpty) {
       requestBody["tagIds"] = _selectedTagIds;
+    } else {
+      requestBody["tagIds"] = [];
     }
 
     if (_selectedImageId != null) {
