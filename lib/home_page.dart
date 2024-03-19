@@ -561,6 +561,7 @@ class _HomePageState extends State<HomePage> {
 
                 if (result != null && result == true) {
                   _fetchUserIdAndPlaces(); // Refresh markers if a new place was successfully created
+                  _updateUserLocation();
                 } else if (result == false) {
                   if (mounted) {
                     setState(() {
