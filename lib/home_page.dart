@@ -12,6 +12,8 @@ import 'package:http/http.dart' as http;
 import 'place.dart';
 import 'dart:convert'; // For using jsonEncode
 import 'global_config.dart';
+import 'dart:async';
+import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,6 +28,8 @@ class _HomePageState extends State<HomePage> {
   bool _isDoubleTap = false;
   List<Place> _places = [];
   bool _isLoading = true;
+  Timer? _locationTimer;
+  bool _isFetchingLocation = false;
 
   Future<void> _fetchUserIdAndPlaces() async {
     try {
@@ -232,10 +236,66 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _toggleLocationTracking() async {
+    if (_locationTimer == null) {
+      setState(() => _isFetchingLocation = true); // Start fetching location
+
+      final LocationPermission permission =
+          await Geolocator.requestPermission();
+      if (permission == LocationPermission.deniedForever) {
+        setState(() =>
+            _isFetchingLocation = false); // Stop fetching location if denied
+        return;
+      }
+
+      _updateUserLocation(); // This already has setState inside
+      _locationTimer = Timer.periodic(Duration(seconds: 20), (timer) {
+        _updateUserLocation();
+      });
+    } else {
+      // Stop tracking user location
+      setState(() {
+        _locationTimer?.cancel();
+        _locationTimer = null;
+        _markers
+            .removeWhere((marker) => marker.key == ValueKey('UserLocation'));
+        _isFetchingLocation = false; // Stop fetching location
+      });
+    }
+  }
+
+  Future<void> _updateUserLocation() async {
+    try {
+      final Position position = await Geolocator.getCurrentPosition();
+      final Marker userLocationMarker = Marker(
+        key: ValueKey('UserLocation'),
+        point: LatLng(position.latitude, position.longitude),
+        child: Icon(Icons.location_pin, color: Colors.blue, size: 50),
+      );
+
+      setState(() {
+        _markers
+            .removeWhere((marker) => marker.key == ValueKey('UserLocation'));
+        _markers.add(userLocationMarker);
+        _isFetchingLocation = false; // Location obtained, stop fetching
+      });
+    } catch (e) {
+      setState(
+          () => _isFetchingLocation = false); // In case of error, stop fetching
+      // Consider handling the error or notifying the user
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: content(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _toggleLocationTracking,
+        backgroundColor: Colors.blue,
+        child: Icon(_locationTimer == null ? Icons.gps_fixed : Icons.gps_off),
+        elevation: 2.0,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         color: Colors.green,
@@ -271,6 +331,9 @@ class _HomePageState extends State<HomePage> {
                 }
               },
             ),
+            SizedBox(
+                width:
+                    48), // This SizedBox serves as a placeholder for the FAB.
             IconButton(
               icon: Icon(Icons.account_circle, color: Colors.white),
               onPressed: () {
@@ -291,46 +354,57 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget content() {
-    return FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(
-        initialCenter: LatLng(45.7032695, 3.3448536),
-        initialZoom: 8,
-        interactiveFlags: InteractiveFlag.pinchZoom |
-            InteractiveFlag.drag, // Enable pinch zoom and drag
-        onTap: (_, latLng) async {
-          if (_isDoubleTap) {
-            // Double tap detected, proceed with creating a place
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CreatePlacePage(
-                  position: latLng,
-                ),
-              ),
-            );
+    return Stack(
+      children: <Widget>[
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: LatLng(45.7032695, 3.3448536),
+            initialZoom: 8,
+            interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+            onTap: (_, latLng) async {
+              if (_isDoubleTap) {
+                // Double tap detected, proceed with creating a place
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreatePlacePage(
+                      position: latLng,
+                    ),
+                  ),
+                );
 
-            if (result != null && result == true) {
-              _fetchUserIdAndPlaces(); // Refresh markers if a new place was successfully created
-            } else if (result == false) {
-              setState(() {
-                _markers
-                    .removeLast(); // Remove temporary marker if place creation was cancelled
-              });
-            }
+                if (result != null && result == true) {
+                  _fetchUserIdAndPlaces(); // Refresh markers if a new place was successfully created
+                } else if (result == false) {
+                  setState(() {
+                    _markers
+                        .removeLast(); // Remove temporary marker if place creation was cancelled
+                  });
+                }
 
-            _isDoubleTap = false;
-          } else {
-            // First tap detected, start timer to wait for a second tap
-            _isDoubleTap = true;
-            await Future.delayed(const Duration(milliseconds: 300));
-            _isDoubleTap = false;
-          }
-        },
-      ),
-      children: [
-        openStreetMapTileLayer,
-        MarkerLayer(markers: _markers),
+                _isDoubleTap = false;
+              } else {
+                // First tap detected, start timer to wait for a second tap
+                _isDoubleTap = true;
+                await Future.delayed(const Duration(milliseconds: 300));
+                _isDoubleTap = false;
+              }
+            },
+          ),
+          children: [
+            openStreetMapTileLayer,
+            MarkerLayer(markers: _markers),
+          ],
+        ),
+        if (_isFetchingLocation) // Check if the location is currently being fetched
+          Positioned(
+            child: Container(
+              alignment: Alignment.center,
+              color: Colors.black.withOpacity(0.5), // Semi-transparent overlay
+              child: CircularProgressIndicator(), // Loading indicator
+            ),
+          ),
       ],
     );
   }
