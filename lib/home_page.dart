@@ -32,6 +32,12 @@ class _HomePageState extends State<HomePage> {
   Timer? _locationTimer;
   bool _isFetchingLocation = false;
 
+  @override
+  void dispose() {
+    _locationTimer?.cancel(); // Cancel the timer
+    super.dispose();
+  }
+
   Future<void> _fetchUserIdAndPlaces() async {
     try {
       setState(() {
@@ -83,9 +89,16 @@ class _HomePageState extends State<HomePage> {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
+
+      // Fetch the user's nickname for the realtime location description comparison
+      final String? nickname = await _fetchUserName(userId);
+
       setState(() {
-        debugPrint('Fetched places: $data'); // Add this line
-        _places = data.map((placeData) => Place.fromJson(placeData)).toList();
+        _places =
+            data.map((placeData) => Place.fromJson(placeData)).where((place) {
+          // Filter out the realtime location place based on its description
+          return !(place.description == "Realtime location of $nickname");
+        }).toList();
         _isLoading = false;
         _markers.addAll(_convertPlacesToMarkers(_places));
       });
@@ -317,25 +330,134 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<String?> _fetchUserName(int userId) async {
+    String? authToken = await SecureStorageManager.getAuthToken();
+    if (authToken == null) {
+      debugPrint("Auth token is null");
+      return null;
+    }
+    try {
+      String baseUrl = GlobalConfig().serverUrl;
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/user/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        debugPrint("Fetched nickname for user ${userId}: ${data['nickname']}");
+        return data['nickname'];
+      } else {
+        debugPrint('Failed to fetch user name: ${response.body}');
+        return 'Failed to fetch user name';
+      }
+    } catch (e) {
+      debugPrint('Error fetching user name: $e');
+      return 'Error occurred';
+    }
+  }
+
   Future<void> _updateUserLocation() async {
     try {
       final Position position = await Geolocator.getCurrentPosition();
-      final Marker userLocationMarker = Marker(
-        key: ValueKey('UserLocation'),
-        point: LatLng(position.latitude, position.longitude),
-        child: Icon(Icons.location_pin, color: Colors.blue, size: 50),
-      );
+      final int? userId = await _fetchUserId();
+      if (userId == null) {
+        debugPrint("Failed to fetch user ID");
+        return;
+      }
+
+      final String? nickname = await _fetchUserName(userId);
+      if (nickname == null) {
+        debugPrint("Failed to fetch nickname");
+        return;
+      }
+
+      // Assuming _createOrUpdatePlaceWithLocation is implemented and works asynchronously
+      // This method should create a place on your backend and return a Place object
+      final Place place = await _createOrUpdatePlaceWithLocation(
+          nickname,
+          "Realtime location of $nickname",
+          position.latitude,
+          position.longitude);
+
+      if (!mounted) return; // Check if the widget is still mounted
 
       setState(() {
         _markers
             .removeWhere((marker) => marker.key == ValueKey('UserLocation'));
-        _markers.add(userLocationMarker);
-        _isFetchingLocation = false; // Location obtained, stop fetching
+        _markers.add(
+          Marker(
+            key: ValueKey('UserLocation'),
+            point: LatLng(position.latitude, position.longitude),
+            child: GestureDetector(
+              onTap: () => _showPlaceDetails(
+                  place), // Ensure _showPlaceDetails is defined and works
+              child: Icon(Icons.location_pin, color: Colors.blue, size: 50),
+            ),
+          ),
+        );
+        _isFetchingLocation =
+            false; // Indicate that location fetching is complete
       });
     } catch (e) {
-      setState(
-          () => _isFetchingLocation = false); // In case of error, stop fetching
-      // Consider handling the error or notifying the user
+      if (!mounted)
+        return; // Again, check if the widget is still mounted before calling setState
+      setState(() => _isFetchingLocation = false);
+      debugPrint('Error updating user location: $e');
+    }
+  }
+
+  Future<Place> _createOrUpdatePlaceWithLocation(String nickname,
+      String description, double latitude, double longitude) async {
+    String baseUrl = GlobalConfig().serverUrl;
+    String? authToken = await SecureStorageManager.getAuthToken();
+    Map<String, dynamic> requestBody = {
+      "name": nickname,
+      "description": description,
+      "latitude": latitude,
+      "longitude": longitude,
+      // Additional required fields...
+    };
+
+    // Attempt to create the place with a POST request
+    var response = await http.post(
+      Uri.parse('$baseUrl/api/place'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie':
+            'authToken=$authToken', // Use 'Authorization' with Bearer token
+      },
+      body: json.encode(requestBody),
+    );
+
+    // If the place already exists (HTTP 409), parse the response to get the existing place's ID
+    if (response.statusCode == 409) {
+      final responseBody = json.decode(response.body);
+      final existingPlaceId =
+          responseBody['placeId']; // Get the placeId from the response body
+
+      // Perform the PUT request to update the existing place
+      response = await http.put(
+        Uri.parse('$baseUrl/api/place/$existingPlaceId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'authToken=$authToken',
+        },
+        body: json.encode(requestBody),
+      );
+    }
+
+    // Handle success for both POST and PUT requests
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = json.decode(response.body);
+      return Place.fromJson(data); // Convert the response to a Place object
+    } else {
+      debugPrint(
+          'Failed to create or update place: ${response.body}, status code: ${response.statusCode}');
+      throw Exception(
+          'Failed to create or update place, status code: ${response.statusCode}');
     }
   }
 
@@ -430,10 +552,12 @@ class _HomePageState extends State<HomePage> {
                 if (result != null && result == true) {
                   _fetchUserIdAndPlaces(); // Refresh markers if a new place was successfully created
                 } else if (result == false) {
-                  setState(() {
-                    _markers
-                        .removeLast(); // Remove temporary marker if place creation was cancelled
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _markers
+                          .removeLast(); // Remove temporary marker if place creation was cancelled
+                    });
+                  }
                 }
 
                 _isDoubleTap = false;

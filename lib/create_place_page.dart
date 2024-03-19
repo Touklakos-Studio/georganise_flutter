@@ -111,8 +111,12 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
       "longitude": _longitudeController.text.isNotEmpty
           ? double.parse(_longitudeController.text)
           : widget.position.longitude,
-      "tagIds": _selectedTagIds,
+      "realtime": false,
     };
+
+    if (_selectedTagIds.isNotEmpty) {
+      requestBody["tagIds"] = _selectedTagIds;
+    }
 
     if (_selectedImageId != null) {
       requestBody["imageId"] = _selectedImageId;
