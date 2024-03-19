@@ -413,12 +413,17 @@ class _HomePageState extends State<HomePage> {
       String description, double latitude, double longitude) async {
     String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
-    Map<String, dynamic> requestBody = {
+    Map<String, dynamic> requestBodyPost = {
       "name": nickname,
       "description": description,
       "latitude": latitude,
       "longitude": longitude,
-      // Additional required fields...
+      "realtime": true,
+    };
+
+    Map<String, dynamic> requestBodyPut = {
+      "latitude": latitude,
+      "longitude": longitude,
     };
 
     // Attempt to create the place with a POST request
@@ -429,7 +434,7 @@ class _HomePageState extends State<HomePage> {
         'Cookie':
             'authToken=$authToken', // Use 'Authorization' with Bearer token
       },
-      body: json.encode(requestBody),
+      body: json.encode(requestBodyPost),
     );
 
     // If the place already exists (HTTP 409), parse the response to get the existing place's ID
@@ -445,7 +450,7 @@ class _HomePageState extends State<HomePage> {
           'Content-Type': 'application/json',
           'Cookie': 'authToken=$authToken',
         },
-        body: json.encode(requestBody),
+        body: json.encode(requestBodyPut),
       );
     }
 
@@ -504,8 +509,13 @@ class _HomePageState extends State<HomePage> {
                 if (result == true) {
                   await _fetchUserIdAndPlaces();
                 }
+                // Only update user location if location tracking is enabled
+                if (_locationTimer != null) {
+                  await _updateUserLocation();
+                }
               },
             ),
+
             SizedBox(
                 width:
                     48), // This SizedBox serves as a placeholder for the FAB.
