@@ -14,6 +14,7 @@ import 'dart:convert'; // For using jsonEncode
 import 'global_config.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -151,14 +152,66 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
+              onPressed: () => _launchMapsUrl(
+                  place.latitude, place.longitude, "google_maps"),
+              child: Text('Open in Google Maps'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.blue, // Button color
+                onPrimary: Colors.white, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0), // Rounded corners
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  _launchMapsUrl(place.latitude, place.longitude, "waze"),
+              child: Text('Open in Waze'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.blue, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0), // Rounded corners
+                ),
+              ),
+            ),
+            ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text('Close'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.grey, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0), // Rounded corners
+                ),
+              ),
             ),
           ],
         );
       },
     );
+  }
+
+  Future<void> _launchMapsUrl(
+      double latitude, double longitude, String mapApp) async {
+    String url = '';
+    if (mapApp == "google_maps") {
+      url =
+          'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    } else if (mapApp == "waze") {
+      url = 'https://waze.com/ul?ll=$latitude,$longitude&navigate=yes';
+    }
+
+    // Encode the URL
+    final encodedUrl = Uri.encodeFull(url);
+
+    // Check and launch the URL
+    if (await canLaunch(encodedUrl)) {
+      await launch(encodedUrl);
+    } else {
+      print('Could not launch $encodedUrl');
+    }
   }
 
   Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
