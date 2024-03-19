@@ -357,13 +357,6 @@ class _PlaceCardState extends State<PlaceCard> {
                     alignment: MainAxisAlignment.center,
                     children: <Widget>[
                       IconButton(
-                        icon: Icon(Icons.share),
-                        color: Colors.white,
-                        onPressed: () {
-                          // Implement share functionality
-                        },
-                      ),
-                      IconButton(
                         icon: Icon(Icons.cloud_download),
                         color: Colors.white,
                         onPressed: () {
