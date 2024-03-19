@@ -157,8 +157,8 @@ class _HomePageState extends State<HomePage> {
                   place.latitude, place.longitude, "google_maps"),
               child: Text('Open in Google Maps'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.blue, // Button color
-                onPrimary: Colors.white, // Text color
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.blue, // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18.0), // Rounded corners
                 ),
