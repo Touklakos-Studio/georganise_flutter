@@ -245,17 +245,21 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
     List<String> tagNames = [];
+
     for (var tag in placeTags) {
       int tagId = tag['placeTagId'];
-      String tagName = await _fetchTagName(tagId) ?? "Unknown Tag";
-      tagNames.add(tagName);
+      String? tagName = await _fetchTagName(tagId);
+
+      if (tagName != null && tagName.isNotEmpty) {
+        tagNames.add(tagName);
+      }
     }
     return tagNames;
   }
 
   Future<String?> _fetchTagName(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
-    if (authToken == null) return "Unknown Tag";
+    if (authToken == null) return null;
     String baseUrl = GlobalConfig().serverUrl;
     try {
       final response = await http.get(
@@ -272,7 +276,7 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       debugPrint('Failed to fetch tag name: $e');
     }
-    return "Unknown Tag"; // Return "Unknown Tag" if fetch fails
+    return null;
   }
 
   Future<void> _logoutUser() async {

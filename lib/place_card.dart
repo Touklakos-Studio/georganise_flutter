@@ -89,18 +89,21 @@ class _PlaceCardState extends State<PlaceCard> {
   Future<List<Map<String, dynamic>>> _fetchTagNames(
       List<dynamic> placeTags) async {
     List<Map<String, dynamic>> tagDetails = [];
+
     for (var tag in placeTags) {
       int placeTagId = tag['placeTagId'];
       String? tagName = await _fetchTagName(placeTagId);
-      tagName = tagName ?? "Unknown Tag";
-      tagDetails.add({"placeTagId": placeTagId, "tagName": tagName});
+
+      if (tagName != null && tagName.isNotEmpty) {
+        tagDetails.add({"placeTagId": placeTagId, "tagName": tagName});
+      }
     }
     return tagDetails;
   }
 
   Future<String?> _fetchTagName(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
-    if (authToken == null) return "Unknown Tag";
+    if (authToken == null) return null;
     String baseUrl = GlobalConfig().serverUrl;
     try {
       final response = await http.get(
@@ -117,7 +120,7 @@ class _PlaceCardState extends State<PlaceCard> {
     } catch (e) {
       debugPrint('Failed to fetch tag name: $e');
     }
-    return "Unknown Tag";
+    return null;
   }
 
   Future<void> _fetchImage() async {
