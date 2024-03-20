@@ -131,6 +131,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 onSaved: (value) => _nickname =
                     value!, // Make sure you have a variable _nickname to store the value
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'A nickname is required';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -167,6 +173,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 obscureText: true,
                 onSaved: (value) => _password = value!,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'A password is required';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 32),
               if (_errorMessage != null)
