@@ -224,6 +224,9 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
         title: Text("Tag Details", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.green,
         elevation: 0,
+        iconTheme: IconThemeData(
+          color: Colors.white, // makes back arrow white
+        ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchTagDetails(),
