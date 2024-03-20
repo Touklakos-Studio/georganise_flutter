@@ -1,51 +1,41 @@
-# Georganise : Guide de démarrage du projet Flutter
+# Georganise
 
-Guide pour vous aider à configurer et à exécuter le projet sur la machine locale pour le développement et les tests.
+Application mobile de gestion de lieux d'intérêts.
 
-## Prérequis
+## Guide d'installation et d'exécution
 
-Avant de commencer, assurez-vous que vous avez installé les éléments suivants sur votre machine :
+### Installation
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install)
-- Un éditeur de code, comme [VS Code](https://code.visualstudio.com/) avec l'extension Flutter, ou [Android Studio](https://developer.android.com/studio)
+1. **Installez Android Studio** : 
+    - Téléchargez et installez Android Studio depuis [le site officiel](https://developer.android.com/studio).
 
-## Configuration de l'environnement
+1. **Installez le Flutter SDK** :
+   - Consultez le [guide d'installation officiel de Flutter](https://flutter.dev/docs/get-started/install) pour les instructions détaillées.
+   - Assurez-vous d'ajouter le Flutter SDK au PATH.
 
-1. **Clonez le dépôt :** Commencez par cloner le dépôt Git du projet sur votre machine locale en utilisant la commande suivante :
+2. **Vérifier votre installation** :
+    - Exécutez la commande `flutter doctor.
+    - Suivez les recommandations pour résoudre les éventuelles erreurs ou avertissements.
 
-    ```bash
-    git clone https://github.com/votre_nom_utilisateur/votre_projet_flutter.git
-    ```
+2. **Configurez votre IDE** :
+   - *Android Studio* :
+     - Installez les plugins Flutter et Dart depuis le marketplace de plugins d'Android Studio.
+   - *Visual Studio Code* :
+     - Installez l'extension Flutter disponible sur le marketplace de VS Code.
 
-2. **Accédez au répertoire du projet :** Changez de répertoire pour accéder à votre projet cloné.
+4. **Récupération des Dépendances**:
+   - Tapez la commande `flutter pub get` dans le terminal pour installer toutes les dépendances nécessaires au projet.
 
-    ```bash
-    cd votre_projet_flutter
-    ```
+### Exécution 
 
-3. **Obtenez les dépendances :** Exécutez la commande suivante pour télécharger toutes les dépendances nécessaires spécifiées dans le fichier `pubspec.yaml` :
+1. **Configuration d'un Émulateur**:
+   - *Android Studio* : Utilisez le Gestionnaire AVD pour créer et démarrer un émulateur Android.
+   - *Visual Studio Code* : Assurez-vous qu'un émulateur est en cours d'exécution ou qu'un appareil est connecté.
 
-    ```bash
-    flutter pub get
-    ```
+2. **Lancement du Projet**:
+   - Exécutez la commande `flutter run` dans le terminal. Le projet devrait se compiler et s'exécuter sur l'émulateur ou l'appareil connecté.
 
-## Exécution de l'application
+### Génération d'un APK 
 
-Une fois que vous avez configuré votre environnement, vous êtes prêt à exécuter l'application.
-
-1. **Choisissez un émulateur :** Lancez un émulateur Android ou iOS, ou connectez un dispositif physique à votre machine. Vous pouvez vérifier les dispositifs disponibles en exécutant :
-
-    ```bash
-    flutter devices
-    ```
-
-2. **Exécutez l'application :** Exécutez l'application sur l'émulateur ou le dispositif sélectionné avec la commande :
-
-    ```bash
-    flutter run
-    ```
-
-## Conseils utiles
-
-- Pour vérifier si votre environnement Flutter est correctement configuré, vous pouvez exécuter `flutter doctor`, qui diagnostiquera les éventuels problèmes avec votre installation de Flutter, Android Studio, ou les dispositifs connectés.
-- Si vous rencontrez des problèmes avec les dépendances, essayez de nettoyer le cache des packages avec `flutter pub cache repair` et exécutez à nouveau `flutter pub get`.
+- Exécutez `flutter build apk` dans le terminal, au répertoire racine du projet.
+- L'APK généré se trouve dans `build/app/outputs/flutter-apk/app-release.apk`.
