@@ -216,7 +216,7 @@ class _ImagesPageState extends State<ImagesPage> {
             icon: Icon(Icons.edit, color: Colors.white),
             label: Text('Edit', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: Colors.green,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18.0)),
               elevation: 5.0,
