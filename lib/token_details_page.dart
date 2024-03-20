@@ -245,21 +245,31 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
               decoration: InputDecoration(
                 labelText: 'Search by Token ID',
                 labelStyle: TextStyle(
-                  color: Color.fromARGB(255, 56, 56,
-                      56), // Set the color of the label text to grey
+                  color: Colors.grey, // Greyish text color
                 ),
-                suffixIcon: Icon(Icons.search),
-                // Defines the border style when the TextField is not in focus
+                // Adding clear button
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear(); // Clear text field content
+                  },
+                ),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
-                      color: Color.fromARGB(255, 56, 56, 56), width: 2.0),
+                    color: Colors.grey, // Greyish border when not focused
+                    width: 2.0,
+                  ),
                 ),
-                // Defines the border style when the TextField is in focus
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(
-                      color: Color.fromARGB(255, 56, 56, 56), width: 2.0),
+                    color: Colors.green, // Greyish border when typing
+                    width: 2.0,
+                  ),
                 ),
               ),
+              onSubmitted: (value) {
+                // Implement search functionality here if needed
+              },
             ),
           ),
           Expanded(
