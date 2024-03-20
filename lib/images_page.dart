@@ -28,11 +28,17 @@ class _ImagesPageState extends State<ImagesPage> {
   bool _isPublic = true;
   File? _imageFile; // Holds the file for an image picked from the gallery
   bool _showPopup = false; // Controls visibility of the popup
+  int? _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _fetchImages();
+    _fetchUserId().then((userId) {
+      setState(() {
+        _currentUserId = userId;
+      });
+    });
   }
 
   Future<void> _fetchImages() async {
@@ -180,6 +186,9 @@ class _ImagesPageState extends State<ImagesPage> {
     );
     if (selectedImage == null) return SizedBox.shrink();
 
+    // Check if the current user is the owner of the image
+    bool isUserImageOwner = _currentUserId == selectedImage['userId'];
+
     String base64Image = selectedImage['imageValue'];
     if (base64Image.startsWith('data:image')) {
       base64Image = base64Image.split(',')[1];
@@ -202,32 +211,34 @@ class _ImagesPageState extends State<ImagesPage> {
         ),
       ),
       actions: <Widget>[
-        ElevatedButton.icon(
-          icon: Icon(Icons.edit, color: Colors.white),
-          label: Text('Edit', style: TextStyle(color: Colors.white)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0)),
-            elevation: 5.0,
+        if (isUserImageOwner)
+          ElevatedButton.icon(
+            icon: Icon(Icons.edit, color: Colors.white),
+            label: Text('Edit', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0)),
+              elevation: 5.0,
+            ),
+            onPressed: () {
+              _editImage(selectedImage);
+            },
           ),
-          onPressed: () {
-            _editImage(selectedImage);
-          },
-        ),
-        ElevatedButton.icon(
-          icon: Icon(Icons.delete, color: Colors.white),
-          label: Text('Delete', style: TextStyle(color: Colors.white)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0)),
-            elevation: 5.0,
+        if (isUserImageOwner)
+          ElevatedButton.icon(
+            icon: Icon(Icons.delete, color: Colors.white),
+            label: Text('Delete', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0)),
+              elevation: 5.0,
+            ),
+            onPressed: () {
+              _confirmDeleteImage(selectedImage['imageId']);
+            },
           ),
-          onPressed: () {
-            _confirmDeleteImage(selectedImage['imageId']);
-          },
-        ),
         ElevatedButton(
           child:
               Text('Select this image', style: TextStyle(color: Colors.white)),
@@ -414,6 +425,26 @@ class _ImagesPageState extends State<ImagesPage> {
       }
     } catch (e) {
       debugPrint('An error occurred while updating image information: $e');
+    }
+  }
+
+  Future<int?> _fetchUserId() async {
+    String baseUrl = GlobalConfig().serverUrl;
+    String? authToken = await SecureStorageManager.getAuthToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/user/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'authToken=$authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['userId'];
+    } else {
+      debugPrint('Failed to fetch user ID: ${response.body}');
+      return null;
     }
   }
 
