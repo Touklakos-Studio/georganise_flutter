@@ -383,13 +383,6 @@ class _PlaceCardState extends State<PlaceCard> {
                     alignment: MainAxisAlignment.center,
                     children: <Widget>[
                       IconButton(
-                        icon: Icon(Icons.cloud_download),
-                        color: Colors.white,
-                        onPressed: () {
-                          // Implement download/export functionality
-                        },
-                      ),
-                      IconButton(
                         icon: Icon(Icons.person),
                         color: Colors.white,
                         onPressed: () async {
