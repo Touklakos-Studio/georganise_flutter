@@ -338,13 +338,25 @@ class _ImagesPageState extends State<ImagesPage> {
                 controller: _imageTitleController,
                 decoration: InputDecoration(
                   labelText: 'Image Title',
+                  hintText: 'Enter the title of the image',
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green, width: 2.0),
+                  ),
                 ),
               ),
+              SizedBox(height: 16),
               TextField(
                 controller: _imageDescriptionController,
                 decoration: InputDecoration(
                   labelText: 'Image Description',
+                  hintText: 'Enter a description for the image',
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green, width: 2.0),
+                  ),
                 ),
+                maxLines: 3,
               ),
             ],
           ),
@@ -416,6 +428,9 @@ class _ImagesPageState extends State<ImagesPage> {
           ),
         ),
         backgroundColor: Colors.green,
+        iconTheme: IconThemeData(
+          color: Colors.white, // This sets the back arrow to white
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -424,23 +439,37 @@ class _ImagesPageState extends State<ImagesPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _imageTitleController,
-                decoration: InputDecoration(
-                  labelText: 'Image Title',
-                  hintText: 'Enter the title of the image',
-                  border: OutlineInputBorder(),
+              Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: Theme.of(context).colorScheme.copyWith(
+                        primary: Colors.green,
+                      ),
+                ),
+                child: TextFormField(
+                  controller: _imageTitleController,
+                  decoration: InputDecoration(
+                    labelText: 'Image Title',
+                    hintText: 'Enter the title of the image',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _imageDescriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Image Description',
-                  hintText: 'Enter a description for the image',
-                  border: OutlineInputBorder(),
+              Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: Theme.of(context).colorScheme.copyWith(
+                        primary: Colors.green,
+                      ),
                 ),
-                maxLines: 3,
+                child: TextFormField(
+                  controller: _imageDescriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Image Description',
+                    hintText: 'Enter a description for the image',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
               ),
               SizedBox(height: 16),
               Row(
@@ -454,6 +483,7 @@ class _ImagesPageState extends State<ImagesPage> {
                         _isPublic = newValue;
                       });
                     },
+                    activeColor: Colors.green,
                   ),
                 ],
               ),
@@ -490,7 +520,10 @@ class _ImagesPageState extends State<ImagesPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
-                    child: Text('Upload Image'),
+                    child: Text(
+                      'Upload Image',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               SizedBox(height: 16),
