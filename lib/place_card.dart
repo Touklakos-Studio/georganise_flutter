@@ -31,6 +31,7 @@ class _PlaceCardState extends State<PlaceCard> {
   String? _userName;
   Uint8List? _imageData;
   String? _currentUserNickname;
+  Future<List<Map<String, dynamic>>>? _tagNamesFuture;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _PlaceCardState extends State<PlaceCard> {
     _initializeData();
     _fetchImage();
     _fetchCurrentUserData(); // Fetch the current user's data
+    _tagNamesFuture = _fetchTagNames(widget.place.placeTags);
   }
 
   void _initializeData() async {
@@ -310,7 +312,7 @@ class _PlaceCardState extends State<PlaceCard> {
                     ),
                   ),
                   FutureBuilder<List<Map<String, dynamic>>>(
-                    future: _fetchTagNames(widget.place.placeTags),
+                    future: _tagNamesFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();
@@ -364,7 +366,8 @@ class _PlaceCardState extends State<PlaceCard> {
                                             horizontal: 10, vertical: 5),
                                         child: Text(
                                           tagDetail['tagName'],
-                                          style: const TextStyle(color: Colors.white),
+                                          style: const TextStyle(
+                                              color: Colors.white),
                                         ),
                                       ),
                                     ),
