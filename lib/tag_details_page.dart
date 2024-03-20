@@ -160,20 +160,18 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                         decoration: InputDecoration(
                           labelText: 'Nickname',
                           labelStyle: TextStyle(
-                            color: Color.fromARGB(255, 56, 56,
-                                56), // Set the color of the label text to green
+                            color: Colors
+                                .grey, // Set the color of the label text to green
                           ),
                           // Border when TextField is not in focus
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Color.fromARGB(255, 56, 56, 56),
-                                width: 2.0),
+                            borderSide:
+                                BorderSide(color: Colors.grey, width: 2.0),
                           ),
                           // Border when TextField is in focus
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Color.fromARGB(255, 56, 56, 56),
-                                width: 2.0),
+                            borderSide:
+                                BorderSide(color: Colors.green, width: 2.0),
                           ),
                         ),
                         onChanged: (value) {
