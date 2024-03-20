@@ -244,7 +244,21 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
               controller: _searchController,
               decoration: InputDecoration(
                 labelText: 'Search by Token ID',
+                labelStyle: TextStyle(
+                  color: Color.fromARGB(255, 56, 56,
+                      56), // Set the color of the label text to grey
+                ),
                 suffixIcon: Icon(Icons.search),
+                // Defines the border style when the TextField is not in focus
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      color: Color.fromARGB(255, 56, 56, 56), width: 2.0),
+                ),
+                // Defines the border style when the TextField is in focus
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      color: Color.fromARGB(255, 56, 56, 56), width: 2.0),
+                ),
               ),
             ),
           ),
