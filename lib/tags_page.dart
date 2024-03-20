@@ -149,8 +149,9 @@ class _TagsPageState extends State<TagsPage> {
       );
 
       if (response.statusCode == 200) {
+        final tags = json.decode(response.body);
         setState(() {
-          _tags = json.decode(response.body);
+          _tags = tags;
         });
         debugPrint('Tags fetched successfully');
         debugPrint('Response body: ${response.body}');
@@ -158,10 +159,18 @@ class _TagsPageState extends State<TagsPage> {
         debugPrint('Failed to fetch tags by keyword');
         debugPrint('Response status code: ${response.statusCode}');
         debugPrint('Response body: ${response.body}');
+        setState(() {
+          _tags =
+              []; // Ensure UI displays no tags when the fetch is unsuccessful or no tags match
+        });
       }
     } catch (e) {
       debugPrint('An error occurred while fetching tags by keyword');
       debugPrint('Error: $e');
+      setState(() {
+        _tags =
+            []; // Handle any exceptions by clearing the tags, effectively showing no results
+      });
     }
   }
 
