@@ -346,7 +346,7 @@ class _TagsPageState extends State<TagsPage> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue),
+                        icon: Icon(Icons.edit, color: Colors.green),
                         onPressed: () {
                           _editTagDescription(tag);
                         },
