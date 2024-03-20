@@ -242,10 +242,13 @@ class _TagsPageState extends State<TagsPage> {
         title: Text(
           'Tags',
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.white, // Title color is white
           ),
         ),
         backgroundColor: Colors.green,
+        iconTheme: IconThemeData(
+          color: Colors.white, // Sets the back arrow color to white
+        ),
       ),
       body: Column(
         children: [
