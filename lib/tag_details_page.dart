@@ -143,6 +143,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                           _isWriter = value;
                         });
                       },
+                      activeColor: Colors.green,
                     ),
                     SwitchListTile(
                       title: Text("Include Nickname"),
@@ -152,10 +153,29 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                           _includeNickname = value;
                         });
                       },
+                      activeColor: Colors.green,
                     ),
                     if (_includeNickname)
                       TextField(
-                        decoration: InputDecoration(labelText: 'Nickname'),
+                        decoration: InputDecoration(
+                          labelText: 'Nickname',
+                          labelStyle: TextStyle(
+                            color: Color.fromARGB(255, 56, 56,
+                                56), // Set the color of the label text to green
+                          ),
+                          // Border when TextField is not in focus
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Color.fromARGB(255, 56, 56, 56),
+                                width: 2.0),
+                          ),
+                          // Border when TextField is in focus
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Color.fromARGB(255, 56, 56, 56),
+                                width: 2.0),
+                          ),
+                        ),
                         onChanged: (value) {
                           _nickname = value;
                         },
@@ -169,6 +189,10 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
             TextButton(
               child: Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green, // Background color
+              ),
             ),
             TextButton(
               child: Text('Generate Token'),
@@ -176,6 +200,10 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                 Navigator.of(context).pop();
                 _generateToken(_isWriter ? "WRITER" : "READER");
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green, // Background color
+              ),
             ),
           ],
         );
