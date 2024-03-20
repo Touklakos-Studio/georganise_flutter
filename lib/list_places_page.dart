@@ -206,14 +206,6 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
         ),
         title: Text('List Places', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.green,
-        actions: [
-          IconButton(
-              icon: Icon(Icons.search),
-              onPressed: () {
-                _searchPlaces(_searchController.text.trim());
-                _fetchPlaces();
-              }),
-        ],
       ),
       body: SafeArea(
         child: Column(
@@ -228,12 +220,25 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                     color:
                         Colors.grey, // Set the color of the label text to grey
                   ),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      _clearSearch(); // Clear search and show all places
-                    },
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // This is important to align your icons properly
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _clearSearch(); // Clear search and show all places
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.search),
+                        onPressed: () {
+                          _searchPlaces(_searchController.text.trim());
+                          _fetchPlaces();
+                        },
+                      ),
+                    ],
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
