@@ -224,12 +224,26 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   labelText: 'Search',
+                  labelStyle: TextStyle(
+                    color:
+                        Colors.grey, // Set the color of the label text to grey
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.clear),
                     onPressed: () {
                       _searchController.clear();
                       _clearSearch(); // Clear search and show all places
                     },
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.grey,
+                        width: 1.0), // Set the enabled border color to grey
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.green,
+                        width: 2.0), // Set the focused border color to green
                   ),
                 ),
                 onSubmitted: (query) {
