@@ -224,9 +224,17 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Token Details'),
+        title: Text(
+          'Token Details',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.green,
-        actions: <Widget>[],
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
+        actionsIconTheme: IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: Column(
         children: [
