@@ -565,20 +565,48 @@ class _ImagesPageState extends State<ImagesPage> {
               TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  labelText: 'Search Images',
-                  hintText: 'Enter a keyword',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () => _searchImages(_searchController.text
-                        .trim()), // Trim the text to remove leading/trailing whitespace
+                  labelText:
+                      'Search Images', // Change this to your preferred label
+                  labelStyle: TextStyle(
+                    color:
+                        Colors.grey, // Set the color of the label text to grey
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // This is important to align your icons properly
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          // Add any additional logic you want to execute when the clear button is pressed
+                          _fetchImages(); // Fetch all images again to reset the search
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.search),
+                        onPressed: () {
+                          _searchImages(_searchController.text
+                              .trim()); // Implement your search logic here
+                        },
+                      ),
+                    ],
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.grey,
+                        width: 1.0), // Set the enabled border color to grey
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.green,
+                        width: 2.0), // Set the focused border color to green
                   ),
                 ),
                 onSubmitted: (value) {
-                  // Trim the text to remove leading/trailing whitespace
+                  // Implement what happens when a search query is submitted
                   _searchImages(value.trim());
                 },
-                textInputAction: TextInputAction
-                    .search, // Changes the keyboard action button to a search icon
               ),
               SizedBox(height: 8),
               Container(
