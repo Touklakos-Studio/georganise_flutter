@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'secure_storage_manager.dart';
@@ -7,6 +6,8 @@ import 'global_config.dart';
 import 'welcome_page.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -53,16 +54,16 @@ class _ProfilePageState extends State<ProfilePage> {
           false, // Prevents closing the dialog by tapping outside of it
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Account'),
-          content: Text('Are you sure you want to delete your account?'),
+          title: const Text('Delete Account'),
+          content: const Text('Are you sure you want to delete your account?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () =>
                   Navigator.of(context).pop(false), // Explicitly passing false
             ),
             TextButton(
-              child: Text('Delete'),
+              child: const Text('Delete'),
               onPressed: () =>
                   Navigator.of(context).pop(true), // Explicitly passing true
             ),
@@ -127,10 +128,10 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
+        title: const Text(
           'Profile',
           style: TextStyle(color: Colors.white),
         ),
@@ -139,7 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: _userData == null
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -153,7 +154,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Nickname',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -161,15 +162,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: Colors.green,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           _userData?['nickname'] ?? '',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                           ),
                         ),
-                        SizedBox(height: 24),
-                        Text(
+                        const SizedBox(height: 24),
+                        const Text(
                           'Email',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -177,24 +178,24 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: Colors.green,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           _userData?['email'] ?? '',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _deleteAccountAndLogout,
-                    child: Text('Delete Account'),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.red,
                     ),
+                    child: const Text('Delete Account'),
                   ),
                 ],
               ),

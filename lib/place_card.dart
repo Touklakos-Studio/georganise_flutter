@@ -16,12 +16,11 @@ class PlaceCard extends StatefulWidget {
   final VoidCallback
       refreshSearch; // Add this callback for refreshing the search
 
-  PlaceCard(
-      {Key? key,
+  const PlaceCard(
+      {super.key,
       required this.place,
       required this.onPlaceDeleted,
-      required this.refreshSearch})
-      : super(key: key);
+      required this.refreshSearch});
 
   @override
   _PlaceCardState createState() => _PlaceCardState();
@@ -185,15 +184,15 @@ class _PlaceCardState extends State<PlaceCard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Place'),
-          content: Text('Are you sure you want to delete this place?'),
+          title: const Text('Delete Place'),
+          content: const Text('Are you sure you want to delete this place?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text('Delete'),
+              child: const Text('Delete'),
               onPressed: () async {
                 String? authToken = await SecureStorageManager.getAuthToken();
                 if (authToken == null) {
@@ -276,7 +275,7 @@ class _PlaceCardState extends State<PlaceCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(8.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
         child: Container(
@@ -300,21 +299,21 @@ class _PlaceCardState extends State<PlaceCard> {
                   ListTile(
                     title: Text(
                       widget.place.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     subtitle: Text(
                       "${widget.place.description}\nLat: ${widget.place.latitude}, Long: ${widget.place.longitude}",
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   FutureBuilder<List<Map<String, dynamic>>>(
                     future: _fetchTagNames(widget.place.placeTags),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       } else if (snapshot.hasData) {
                         return Padding(
                           padding: const EdgeInsets.all(10.0),
@@ -356,7 +355,7 @@ class _PlaceCardState extends State<PlaceCard> {
                                                 Colors.black.withOpacity(0.3),
                                             spreadRadius: 2,
                                             blurRadius: 5,
-                                            offset: Offset(0, 3),
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
@@ -365,7 +364,7 @@ class _PlaceCardState extends State<PlaceCard> {
                                             horizontal: 10, vertical: 5),
                                         child: Text(
                                           tagDetail['tagName'],
-                                          style: TextStyle(color: Colors.white),
+                                          style: const TextStyle(color: Colors.white),
                                         ),
                                       ),
                                     ),
@@ -375,7 +374,7 @@ class _PlaceCardState extends State<PlaceCard> {
                           ),
                         );
                       } else {
-                        return Text("No tags available");
+                        return const Text("No tags available");
                       }
                     },
                   ),
@@ -383,7 +382,7 @@ class _PlaceCardState extends State<PlaceCard> {
                     alignment: MainAxisAlignment.center,
                     children: <Widget>[
                       IconButton(
-                        icon: Icon(Icons.person),
+                        icon: const Icon(Icons.person),
                         color: Colors.white,
                         onPressed: () async {
                           if (!_showUsername) {
@@ -404,15 +403,15 @@ class _PlaceCardState extends State<PlaceCard> {
                       ),
                       if (_showUsername && _userName != null)
                         Container(
-                          padding: EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(8.0),
                           color: Colors.black.withOpacity(0.5),
                           child: Text(
                             _userName!,
-                            style: TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         color: Colors.red,
                         onPressed: _currentUserNickname == _userName
                             ? () {
@@ -423,7 +422,7 @@ class _PlaceCardState extends State<PlaceCard> {
                             : null,
                       ),
                       IconButton(
-                        icon: Icon(Icons.edit),
+                        icon: const Icon(Icons.edit),
                         color: Colors.green, // Set the icon color to green
                         onPressed: _currentUserNickname == _userName
                             ? () async {

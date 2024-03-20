@@ -7,8 +7,7 @@ import 'global_config.dart';
 class TagsPage extends StatefulWidget {
   final List<int> initialSelectedTagIds;
 
-  const TagsPage({Key? key, this.initialSelectedTagIds = const []})
-      : super(key: key);
+  const TagsPage({super.key, this.initialSelectedTagIds = const []});
 
   @override
   _TagsPageState createState() => _TagsPageState();
@@ -122,14 +121,14 @@ class _TagsPageState extends State<TagsPage> {
       if (response.statusCode == 200) {
         debugPrint('Tag deleted successfully');
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Tag deleted successfully')));
+            .showSnackBar(const SnackBar(content: Text('Tag deleted successfully')));
         await _fetchTags(); // Refetch the tags after deleting one
       } else {
         debugPrint('Failed to delete tag');
         debugPrint('Response status code: ${response.statusCode}');
         debugPrint('Response body: ${response.body}');
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to delete tag')));
+            .showSnackBar(const SnackBar(content: Text('Failed to delete tag')));
       }
     } catch (e) {
       debugPrint('An error occurred while deleting a tag');
@@ -175,30 +174,30 @@ class _TagsPageState extends State<TagsPage> {
   }
 
   Future<void> _editTagDescription(dynamic tag) async {
-    final TextEditingController _editDescriptionController =
+    final TextEditingController editDescriptionController =
         TextEditingController(text: tag['description']);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit Tag Description'),
+          title: const Text('Edit Tag Description'),
           content: TextField(
-            controller: _editDescriptionController,
-            decoration: InputDecoration(hintText: "Enter new description"),
+            controller: editDescriptionController,
+            decoration: const InputDecoration(hintText: "Enter new description"),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Validate'),
+              child: const Text('Validate'),
               onPressed: () async {
                 await _updateTagDescription(
-                    tag['tagId'], _editDescriptionController.text);
+                    tag['tagId'], editDescriptionController.text);
                 Navigator.of(context).pop();
               },
             ),
@@ -226,21 +225,21 @@ class _TagsPageState extends State<TagsPage> {
       if (response.statusCode == 200) {
         debugPrint('Tag description updated successfully');
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tag description updated successfully')));
+            const SnackBar(content: Text('Tag description updated successfully')));
         await _fetchTags(); // Refetch tags to get updated list
       } else if (response.statusCode == 401) {
         debugPrint('Unauthorized to update tag description: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Unauthorized to update tag description')));
+            const SnackBar(content: Text('Unauthorized to update tag description')));
       } else {
         debugPrint('Failed to update tag description: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update tag description')));
+            const SnackBar(content: Text('Failed to update tag description')));
       }
     } catch (e) {
       debugPrint('Error updating tag description: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating tag description')));
+          const SnackBar(content: Text('Error updating tag description')));
     }
   }
 
@@ -248,14 +247,14 @@ class _TagsPageState extends State<TagsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Tags',
           style: TextStyle(
             color: Colors.white, // Title color is white
           ),
         ),
         backgroundColor: Colors.green,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: Colors.white, // Sets the back arrow color to white
         ),
       ),
@@ -268,7 +267,7 @@ class _TagsPageState extends State<TagsPage> {
                 Expanded(
                   child: TextField(
                     controller: _searchController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Search Tags',
                       fillColor: Colors.white,
                       filled: true,
@@ -293,32 +292,32 @@ class _TagsPageState extends State<TagsPage> {
                 Expanded(
                   child: TextField(
                     controller: _tagTitleController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Tag Title',
                       fillColor: Colors.white,
                       filled: true,
                     ),
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: TextField(
                     controller: _tagDescriptionController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Tag Description',
                       fillColor: Colors.white,
                       filled: true,
                     ),
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _createTag,
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.green,
                   ),
-                  child: Text('Create Tag'),
+                  child: const Text('Create Tag'),
                 ),
               ],
             ),
@@ -346,13 +345,13 @@ class _TagsPageState extends State<TagsPage> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.edit, color: Colors.green),
+                        icon: const Icon(Icons.edit, color: Colors.green),
                         onPressed: () {
                           _editTagDescription(tag);
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
                           _deleteTag(tag['tagId']);
                         },
@@ -373,7 +372,7 @@ class _TagsPageState extends State<TagsPage> {
           Navigator.pop(context, _selectedTagIds);
         },
         backgroundColor: Colors.green,
-        child: Icon(Icons.check, color: Colors.white),
+        child: const Icon(Icons.check, color: Colors.white),
       ),
     );
   }

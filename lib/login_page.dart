@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
       var bytes = utf8.encode(_password); // data being hashed
       var hashedPassword = sha256.convert(bytes).toString();
 
-      var response = null;
+      http.Response response;
       try {
         response = await http.post(
           Uri.parse('$baseUrl/api/user/login'),
@@ -45,54 +45,52 @@ class _LoginPageState extends State<LoginPage> {
           const SnackBar(
               content: Text('The server URL is invalid or unreachable')),
         );
+        rethrow;
       }
 
-      if (response != null) {
-        if (response.statusCode == 200) {
-          debugPrint('Login successful');
+      if (response.statusCode == 200) {
+        debugPrint('Login successful');
 
-          // Extract cookies from response headers
-          final String? rawCookie = response.headers['set-cookie'];
-          String? authToken;
-          if (rawCookie != null) {
-            // Assuming the cookie format is "authToken=tokenValue; Path=/; Expires=..."
-            final int index = rawCookie.indexOf(';');
+        // Extract cookies from response headers
+        final String? rawCookie = response.headers['set-cookie'];
+        String? authToken;
+        if (rawCookie != null) {
+          // Assuming the cookie format is "authToken=tokenValue; Path=/; Expires=..."
+          final int index = rawCookie.indexOf(';');
+          authToken = (index == -1) ? rawCookie : rawCookie.substring(0, index);
+          // Further extract authToken value if necessary
+          if (authToken.startsWith('authToken=')) {
             authToken =
-                (index == -1) ? rawCookie : rawCookie.substring(0, index);
-            // Further extract authToken value if necessary
-            if (authToken.startsWith('authToken=')) {
-              authToken =
-                  authToken.substring('authToken='.length, authToken.length);
-            }
+                authToken.substring('authToken='.length, authToken.length);
           }
-
-          // Check if authToken is extracted successfully
-          if (authToken != null && authToken.isNotEmpty) {
-            await SecureStorageManager.storeAuthToken(authToken);
-            debugPrint('Auth token stored successfully');
-          } else {
-            debugPrint('No auth token found in the response cookies');
-          }
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        } else if (response.statusCode == 400) {
-          debugPrint('Login failed');
-          debugPrint('Response status: ${response.statusCode}');
-          debugPrint('Response body: ${response.body}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid email or password')),
-          );
-        } else {
-          debugPrint('Login failed');
-          debugPrint('Response status: ${response.statusCode}');
-          debugPrint('Response body: ${response.body}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('An error occurred')),
-          );
         }
+
+        // Check if authToken is extracted successfully
+        if (authToken != null && authToken.isNotEmpty) {
+          await SecureStorageManager.storeAuthToken(authToken);
+          debugPrint('Auth token stored successfully');
+        } else {
+          debugPrint('No auth token found in the response cookies');
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else if (response.statusCode == 400) {
+        debugPrint('Login failed');
+        debugPrint('Response status: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid email or password')),
+        );
+      } else {
+        debugPrint('Login failed');
+        debugPrint('Response status: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred')),
+        );
       }
     }
   }

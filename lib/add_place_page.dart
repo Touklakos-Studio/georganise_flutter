@@ -5,7 +5,7 @@ import 'secure_storage_manager.dart';
 import 'global_config.dart';
 
 class AddTokenPage extends StatefulWidget {
-  const AddTokenPage({Key? key}) : super(key: key);
+  const AddTokenPage({super.key});
 
   @override
   State<AddTokenPage> createState() => _AddTokenPageState();
@@ -29,7 +29,7 @@ class _AddTokenPageState extends State<AddTokenPage> {
         return;
       }
 
-      var response;
+      http.Response response;
       try {
         response = await http.patch(
           Uri.parse('$baseUrl/api/token/$_tokenId'),
@@ -71,7 +71,7 @@ class _AddTokenPageState extends State<AddTokenPage> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.green,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: Colors.white,
         ),
       ),
@@ -88,13 +88,13 @@ class _AddTokenPageState extends State<AddTokenPage> {
                   labelStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.white,
-                  enabledBorder: OutlineInputBorder(
+                  enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.grey, // Grey border when nothing is typed
                       width: 1.0,
                     ),
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  focusedBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.green, // Green border when typing
                       width: 2.0,
@@ -102,7 +102,7 @@ class _AddTokenPageState extends State<AddTokenPage> {
                   ),
                   // Clear button
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
+                    icon: const Icon(Icons.clear),
                     onPressed: () {
                       // Clear the text field content
                       _formKey.currentState?.reset();

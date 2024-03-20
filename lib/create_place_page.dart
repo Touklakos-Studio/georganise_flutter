@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:async';
@@ -17,11 +16,11 @@ class CreatePlacePage extends StatefulWidget {
   final Place? placeToEdit;
 
   const CreatePlacePage({
-    Key? key,
+    super.key,
     required this.position,
     this.selectedImageId,
     this.placeToEdit,
-  }) : super(key: key);
+  });
 
   @override
   _CreatePlacePageState createState() => _CreatePlacePageState();
@@ -86,7 +85,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
   Future<void> _submitPlaceData() async {
     if (!_validateInputs()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Title and description are required')),
+        const SnackBar(content: Text('Title and description are required')),
       );
       return;
     }
@@ -140,7 +139,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     } else {
       debugPrint('Failed to submit place. Status code: ${response.statusCode}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred while submitting the place')),
+        const SnackBar(content: Text('An error occurred while submitting the place')),
       );
     }
   }
@@ -196,69 +195,69 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(false),
         ),
         title: Text(
           pageTitle,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
           ),
         ),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (widget.placeToEdit != null) ...[
               TextField(
                 controller: _latitudeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Latitude',
                   fillColor: Colors.white,
                   filled: true,
                 ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _longitudeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Longitude',
                   fillColor: Colors.white,
                   filled: true,
                 ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
             TextField(
               controller: _titleController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Title',
                 fillColor: Colors.white,
                 filled: true,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Description',
                 fillColor: Colors.white,
                 filled: true,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 8.0,
               runSpacing: 8.0,
               children: _selectedTagIds.map((tagId) {
                 return Chip(
                   label: Text('Tag $tagId'),
-                  deleteIcon: Icon(Icons.cancel),
+                  deleteIcon: const Icon(Icons.cancel),
                   onDeleted: () {
                     setState(() {
                       _selectedTagIds.remove(tagId);
@@ -267,17 +266,17 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
                 );
               }).toList(),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _selectTags,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
               ),
-              icon: Icon(Icons.add),
-              label: Text('Add a tag'),
+              icon: const Icon(Icons.add),
+              label: const Text('Add a tag'),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _pickImage,
               style: ElevatedButton.styleFrom(
@@ -290,11 +289,11 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
                   if (_selectedImageId != null)
                     Text('Selected image ID: $_selectedImageId')
                   else
-                    Text('Pick Image'),
+                    const Text('Pick Image'),
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             FloatingActionButton(
               backgroundColor: Colors.white,
               onPressed: _submitPlaceData,

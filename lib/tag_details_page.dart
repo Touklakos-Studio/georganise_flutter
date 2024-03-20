@@ -9,9 +9,9 @@ class TagDetailsPage extends StatefulWidget {
   final int tagId;
 
   const TagDetailsPage({
-    Key? key,
+    super.key,
     required this.tagId,
-  }) : super(key: key);
+  });
 
   @override
   _TagDetailsPageState createState() => _TagDetailsPageState();
@@ -98,25 +98,26 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
         (_includeNickname && _nickname.isNotEmpty)) {
       debugPrint('Token generated and added to user successfully');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text('Token generated and added to user successfully')),
       );
     } else if (response.statusCode == 200) {
       debugPrint('Token generated successfully');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Token generated successfully')),
+        const SnackBar(content: Text('Token generated successfully')),
       );
     } else if (response.statusCode == 401) {
       debugPrint('Failed to generate token: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content:
                 Text('You are not authorized to generate a token on this tag')),
       );
     } else {
       debugPrint('Failed to generate token: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to generate token. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to generate token. Please try again.')),
       );
     }
   }
@@ -125,28 +126,28 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        bool _isWriter = false; // Default access right
+        bool isWriter = false; // Default access right
         return AlertDialog(
-          title: Text("Generate Token"),
+          title: const Text("Generate Token"),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Text("Select Access Right:"),
+                    const Text("Select Access Right:"),
                     SwitchListTile(
-                      title: Text(_isWriter ? "Writer" : "Reader"),
-                      value: _isWriter,
+                      title: Text(isWriter ? "Writer" : "Reader"),
+                      value: isWriter,
                       onChanged: (bool value) {
                         setState(() {
-                          _isWriter = value;
+                          isWriter = value;
                         });
                       },
                       activeColor: Colors.green,
                     ),
                     SwitchListTile(
-                      title: Text("Include Nickname"),
+                      title: const Text("Include Nickname"),
                       value: _includeNickname,
                       onChanged: (bool value) {
                         setState(() {
@@ -157,7 +158,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                     ),
                     if (_includeNickname)
                       TextField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Nickname',
                           labelStyle: TextStyle(
                             color: Colors
@@ -185,23 +186,23 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green, // Background color
               ),
+              child: const Text('Cancel'),
             ),
             TextButton(
-              child: Text('Generate Token'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _generateToken(_isWriter ? "WRITER" : "READER");
+                _generateToken(isWriter ? "WRITER" : "READER");
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green, // Background color
               ),
+              child: const Text('Generate Token'),
             ),
           ],
         );
@@ -247,10 +248,10 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text("Tag Details", style: TextStyle(color: Colors.white)),
+        title: const Text("Tag Details", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.green,
         elevation: 0,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: Colors.white, // makes back arrow white
         ),
       ),
@@ -258,69 +259,69 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
         future: fetchTagDetails(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
               child: Text("Error: ${snapshot.error}",
-                  style: TextStyle(color: Colors.red)),
+                  style: const TextStyle(color: Colors.red)),
             );
           } else {
             var data = snapshot.data!;
             return SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         ListTile(
-                          leading: Icon(Icons.tag, color: Colors.green),
+                          leading: const Icon(Icons.tag, color: Colors.green),
                           title: Text(data["title"],
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)),
                           subtitle: Text('Tag ID: ${data["tagId"]}',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.grey)),
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.grey)),
                         ),
-                        Divider(),
+                        const Divider(),
                         Text('Description: ${data["description"]}',
-                            style: TextStyle(fontSize: 16)),
-                        SizedBox(height: 20),
-                        Text('Associated Places:',
+                            style: const TextStyle(fontSize: 16)),
+                        const SizedBox(height: 20),
+                        const Text('Associated Places:',
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         ...data["placeTags"].map<Widget>((tag) {
                           return FutureBuilder<Map<String, dynamic>>(
                             future: fetchPlaceDetails(tag["placeTagId"]),
                             builder: (context, placeSnapshot) {
                               if (placeSnapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return ListTile(
+                                return const ListTile(
                                   leading: CircularProgressIndicator(),
                                   title: Text('Loading place details...'),
                                 );
                               } else if (placeSnapshot.hasError) {
-                                return ListTile(
+                                return const ListTile(
                                   leading: Icon(Icons.error, color: Colors.red),
                                   title: Text('Error loading place details'),
                                 );
                               } else {
                                 var placeData = placeSnapshot.data!;
                                 return ListTile(
-                                  leading:
-                                      Icon(Icons.place, color: Colors.green),
+                                  leading: const Icon(Icons.place,
+                                      color: Colors.green),
                                   title: Text(placeData["name"],
-                                      style: TextStyle(fontSize: 16)),
+                                      style: const TextStyle(fontSize: 16)),
                                   subtitle: Text(
                                     'Description: ${placeData["description"]}\nLocation: ${placeData["latitude"]}, ${placeData["longitude"]}',
-                                    style: TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: 14),
                                   ),
                                 );
                               }
@@ -344,8 +345,8 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
           children: [
             ElevatedButton.icon(
               onPressed: _showGenerateTokenDialog,
-              icon: Icon(Icons.vpn_key, color: Colors.white),
-              label: Text('Generate Token'),
+              icon: const Icon(Icons.vpn_key, color: Colors.white),
+              label: const Text('Generate Token'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green, // Text color
@@ -357,18 +358,18 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
                   if (tokenDetails.isNotEmpty) {
                     _navigateToTokenDetailsPage(tokenDetails);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text("No tokens generated for this tag."),
                     ));
                   }
                 }).catchError((error) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text("Error fetching token details."),
                   ));
                 });
               },
-              icon: Icon(Icons.visibility, color: Colors.white),
-              label: Text('View Tokens'),
+              icon: const Icon(Icons.visibility, color: Colors.white),
+              label: const Text('View Tokens'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color

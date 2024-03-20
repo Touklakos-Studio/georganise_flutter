@@ -8,15 +8,14 @@ import 'package:flutter/services.dart';
 class TokenDetailsPage extends StatefulWidget {
   final List<dynamic> tokenDetails;
 
-  const TokenDetailsPage({Key? key, required this.tokenDetails})
-      : super(key: key);
+  const TokenDetailsPage({super.key, required this.tokenDetails});
 
   @override
   _TokenDetailsPageState createState() => _TokenDetailsPageState();
 }
 
 class _TokenDetailsPageState extends State<TokenDetailsPage> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<dynamic> _filteredTokenDetails = [];
 
   @override
@@ -42,7 +41,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Auth token is not available")));
+          .showSnackBar(const SnackBar(content: Text("Auth token is not available")));
       return;
     }
     String baseUrl = GlobalConfig().serverUrl;
@@ -57,21 +56,21 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Token access right updated successfully')));
+          const SnackBar(content: Text('Token access right updated successfully')));
       Navigator.of(context).pop(
           true); // Assuming you might have a mechanism to refresh the parent page.
     } else if (response.statusCode == 401) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unauthorized to update token access right')));
+          const SnackBar(content: Text('Unauthorized to update token access right')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update token access right')));
+          const SnackBar(content: Text('Failed to update token access right')));
     }
   }
 
   Widget _editTokenAccessRightButton(int tokenId, String currentAccessRight) {
     return IconButton(
-      icon: Icon(Icons.edit, color: Colors.blue),
+      icon: const Icon(Icons.edit, color: Colors.blue),
       onPressed: () {
         _showEditTokenDialog(tokenId, currentAccessRight);
       },
@@ -79,34 +78,34 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
   }
 
   void _showEditTokenDialog(int tokenId, String currentAccessRight) {
-    bool _isWriter = currentAccessRight == "WRITER";
+    bool isWriter = currentAccessRight == "WRITER";
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text("Edit Token Access Right"),
+              title: const Text("Edit Token Access Right"),
               content: SwitchListTile(
-                title: Text(_isWriter ? "Writer" : "Reader"),
-                value: _isWriter,
+                title: Text(isWriter ? "Writer" : "Reader"),
+                value: isWriter,
                 onChanged: (bool value) {
                   setState(() {
-                    _isWriter = value;
+                    isWriter = value;
                   });
                 },
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 TextButton(
-                  child: Text('Update'),
+                  child: const Text('Update'),
                   onPressed: () {
                     Navigator.of(context).pop();
                     _updateTokenAccessRight(
-                        tokenId, _isWriter ? "WRITER" : "READER");
+                        tokenId, isWriter ? "WRITER" : "READER");
                   },
                 ),
               ],
@@ -119,7 +118,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
 
   Widget _deleteTokenButton(int tokenId) {
     return IconButton(
-      icon: Icon(Icons.delete, color: Colors.red),
+      icon: const Icon(Icons.delete, color: Colors.red),
       onPressed: () => _showDeleteConfirmation(tokenId),
     );
   }
@@ -129,17 +128,17 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Delete Token"),
-          content: Text("Are you sure you want to delete this token?"),
+          title: const Text("Delete Token"),
+          content: const Text("Are you sure you want to delete this token?"),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 _deleteToken(tokenId);
                 Navigator.of(context).pop();
@@ -155,7 +154,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Auth token is not available")));
+          .showSnackBar(const SnackBar(content: Text("Auth token is not available")));
       return;
     }
 
@@ -170,24 +169,24 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Token deleted successfully')));
+          .showSnackBar(const SnackBar(content: Text('Token deleted successfully')));
       // Optionally refresh the list or navigate back
       setState(() {
         widget.tokenDetails.removeWhere((token) => token['tokenId'] == tokenId);
       });
     } else if (response.statusCode == 401) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unauthorized to delete token')));
+          const SnackBar(content: Text('Unauthorized to delete token')));
     } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to delete token')));
+          .showSnackBar(const SnackBar(content: Text('Failed to delete token')));
     }
   }
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Token copied to clipboard'),
         ),
       );
@@ -224,15 +223,15 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Token Details',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.green,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: Colors.white,
         ),
-        actionsIconTheme: IconThemeData(
+        actionsIconTheme: const IconThemeData(
           color: Colors.white,
         ),
       ),
@@ -244,23 +243,23 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
               controller: _searchController,
               decoration: InputDecoration(
                 labelText: 'Search by Token ID',
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   color: Colors.grey, // Greyish text color
                 ),
                 // Adding clear button
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.clear),
+                  icon: const Icon(Icons.clear),
                   onPressed: () {
                     _searchController.clear(); // Clear text field content
                   },
                 ),
-                enabledBorder: OutlineInputBorder(
+                enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(
                     color: Colors.grey, // Greyish border when not focused
                     width: 2.0,
                   ),
                 ),
-                focusedBorder: OutlineInputBorder(
+                focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(
                     color: Colors.green, // Greyish border when typing
                     width: 2.0,
@@ -280,11 +279,11 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                 bool canModify = token['creatorId'] == token['userId'];
 
                 return Card(
-                  margin: EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.all(8.0),
                   child: ListTile(
                     title: Text(
                       "Token ID: ${token['tokenId']}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +297,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                                 ConnectionState.done) {
                               return Text("Creator: ${snapshot.data}");
                             } else {
-                              return Text("Loading creator...");
+                              return const Text("Loading creator...");
                             }
                           },
                         ),
@@ -309,7 +308,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                                 ConnectionState.done) {
                               return Text("User: ${snapshot.data}");
                             } else {
-                              return Text("Loading user...");
+                              return const Text("Loading user...");
                             }
                           },
                         ),
@@ -320,7 +319,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                       children: [
                         // Copy to Clipboard button is shown to everyone
                         IconButton(
-                          icon: Icon(Icons.content_copy, color: Colors.grey),
+                          icon: const Icon(Icons.content_copy, color: Colors.grey),
                           onPressed: () =>
                               _copyToClipboard(token['tokenValue']),
                         ),

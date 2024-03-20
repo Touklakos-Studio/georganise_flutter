@@ -3,7 +3,7 @@ import 'global_config.dart';
 // Add any other imports needed for this page
 
 class ServerURLPage extends StatefulWidget {
-  const ServerURLPage({Key? key}) : super(key: key);
+  const ServerURLPage({super.key});
 
   @override
   _ServerURLPageState createState() => _ServerURLPageState();
@@ -28,7 +28,7 @@ class _ServerURLPageState extends State<ServerURLPage> {
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>(); // Add this line
+    final formKey = GlobalKey<FormState>(); // Add this line
 
     return Scaffold(
       backgroundColor: Colors.green,
@@ -45,7 +45,7 @@ class _ServerURLPageState extends State<ServerURLPage> {
         alignment: Alignment.center,
         child: Form(
           // Wrap your Column with a Form widget
-          key: _formKey, // Add this line
+          key: formKey, // Add this line
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -89,7 +89,7 @@ class _ServerURLPageState extends State<ServerURLPage> {
               FloatingActionButton(
                 backgroundColor: Colors.white,
                 onPressed: () {
-                  if (_formKey.currentState!.validate()) {
+                  if (formKey.currentState!.validate()) {
                     // Validate before saving
                     GlobalConfig().serverUrl = _controller.text;
                     Navigator.of(context).pop();

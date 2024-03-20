@@ -7,6 +7,8 @@ import 'place_card.dart';
 import 'global_config.dart';
 
 class ListPlacesPage extends StatefulWidget {
+  const ListPlacesPage({super.key});
+
   @override
   _ListPlacesPageState createState() => _ListPlacesPageState();
 }
@@ -65,7 +67,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     } else if (response.statusCode == 404) {
       debugPrint('No places found');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No places found')),
+        const SnackBar(content: Text('No places found')),
       );
     } else {
       debugPrint('Failed to fetch places: ${response.body}');
@@ -123,7 +125,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
   Future<List<Place>> _fetchAndUpdateTagNamesForPlaces(
       List<Place> places) async {
     List<Future> fetchTagNamesTasks = [];
-    places.forEach((place) {
+    for (var place in places) {
       place.placeTags.forEach((tag) async {
         // Assuming tag['placeTagId'] exists and _fetchTagName method is defined in your PlaceCard
         fetchTagNamesTasks.add(
@@ -133,7 +135,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
           }),
         );
       });
-    });
+    }
 
     // Wait for all fetch tag name tasks to complete
     await Future.wait(fetchTagNamesTasks);
@@ -201,22 +203,22 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context, true),
         ),
-        title: Text('List Places', style: TextStyle(color: Colors.white)),
+        title: const Text('List Places', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.green,
       ),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   labelText: 'Search',
-                  labelStyle: TextStyle(
+                  labelStyle: const TextStyle(
                     color:
                         Colors.grey, // Set the color of the label text to grey
                   ),
@@ -225,14 +227,14 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                         .min, // This is important to align your icons properly
                     children: [
                       IconButton(
-                        icon: Icon(Icons.clear),
+                        icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
                           _clearSearch(); // Clear search and show all places
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.search),
+                        icon: const Icon(Icons.search),
                         onPressed: () {
                           _searchPlaces(_searchController.text.trim());
                           _fetchPlaces();
@@ -240,12 +242,12 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                       ),
                     ],
                   ),
-                  enabledBorder: OutlineInputBorder(
+                  enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                         color: Colors.grey,
                         width: 1.0), // Set the enabled border color to grey
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  focusedBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                         color: Colors.green,
                         width: 2.0), // Set the focused border color to green
@@ -263,7 +265,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
             ),
             Expanded(
               child: _isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : ListView.builder(
                       itemCount: _filteredPlaces.isNotEmpty
                           ? _filteredPlaces.length
@@ -287,7 +289,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
                                     .trim()); // Optionally refresh the search
                               }, // Pa  ss the method here
                             ),
-                            Divider(color: Colors.grey),
+                            const Divider(color: Colors.grey),
                           ],
                         );
                       },

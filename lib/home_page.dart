@@ -7,7 +7,6 @@ import 'list_places_page.dart';
 import 'profile_page.dart';
 import 'welcome_page.dart';
 import 'secure_storage_manager.dart';
-import 'add_place_page.dart';
 import 'package:http/http.dart' as http;
 import 'place.dart';
 import 'dart:convert'; // For using jsonEncode
@@ -39,7 +38,7 @@ class _HomePageState extends State<HomePage> {
     _fetchUserIdAndPlaces();
 
     // Initialize the timer to fetch places every minute
-    _placesFetchTimer = Timer.periodic(Duration(minutes: 1), (Timer t) async {
+    _placesFetchTimer = Timer.periodic(const Duration(minutes: 1), (Timer t) async {
       final int? userId = await _fetchUserId();
       if (userId != null) {
         await _fetchPlaces(userId);
@@ -133,7 +132,7 @@ class _HomePageState extends State<HomePage> {
           width: 80.0,
           height: 80.0,
           child: IconButton(
-            icon: Icon(Icons.location_pin),
+            icon: const Icon(Icons.location_pin),
             iconSize: 60,
             color: Colors.red,
             onPressed: () {
@@ -156,12 +155,12 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(place.description),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 FutureBuilder<List<String>>(
                   future: _fetchTagNames(place.placeTags),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
+                      return const CircularProgressIndicator();
                     } else if (snapshot.hasData) {
                       return Wrap(
                         spacing: 8.0, // Spacing between chips
@@ -173,7 +172,7 @@ class _HomePageState extends State<HomePage> {
                             .toList(),
                       );
                     } else {
-                      return Text("No tags available");
+                      return const Text("No tags available");
                     }
                   },
                 ),
@@ -184,7 +183,6 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () => _launchMapsUrl(
                   place.latitude, place.longitude, "google_maps"),
-              child: Text('Open in Google Maps'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
@@ -192,11 +190,11 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(18.0), // Rounded corners
                 ),
               ),
+              child: const Text('Open in Google Maps'),
             ),
             ElevatedButton(
               onPressed: () =>
                   _launchMapsUrl(place.latitude, place.longitude, "waze"),
-              child: Text('Open in Waze'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
@@ -204,10 +202,10 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(18.0), // Rounded corners
                 ),
               ),
+              child: const Text('Open in Waze'),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Close'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.grey, // Text color
@@ -215,6 +213,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(18.0), // Rounded corners
                 ),
               ),
+              child: const Text('Close'),
             ),
           ],
         );
@@ -329,7 +328,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       _updateUserLocation(); // This already has setState inside
-      _locationTimer = Timer.periodic(Duration(seconds: 20), (timer) {
+      _locationTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
         _updateUserLocation();
       });
     } else {
@@ -338,7 +337,7 @@ class _HomePageState extends State<HomePage> {
         _locationTimer?.cancel();
         _locationTimer = null;
         _markers
-            .removeWhere((marker) => marker.key == ValueKey('UserLocation'));
+            .removeWhere((marker) => marker.key == const ValueKey('UserLocation'));
         _isFetchingLocation = false; // Stop fetching location
       });
     }
@@ -361,7 +360,7 @@ class _HomePageState extends State<HomePage> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint("Fetched nickname for user ${userId}: ${data['nickname']}");
+        debugPrint("Fetched nickname for user $userId: ${data['nickname']}");
         return data['nickname'];
       } else {
         debugPrint('Failed to fetch user name: ${response.body}');
@@ -400,15 +399,15 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         _markers
-            .removeWhere((marker) => marker.key == ValueKey('UserLocation'));
+            .removeWhere((marker) => marker.key == const ValueKey('UserLocation'));
         _markers.add(
           Marker(
-            key: ValueKey('UserLocation'),
+            key: const ValueKey('UserLocation'),
             point: LatLng(position.latitude, position.longitude),
             child: GestureDetector(
               onTap: () => _showPlaceDetails(
                   place), // Ensure _showPlaceDetails is defined and works
-              child: Icon(Icons.location_pin, color: Colors.blue, size: 50),
+              child: const Icon(Icons.location_pin, color: Colors.blue, size: 50),
             ),
           ),
         );
@@ -416,8 +415,9 @@ class _HomePageState extends State<HomePage> {
             false; // Indicate that location fetching is complete
       });
     } catch (e) {
-      if (!mounted)
+      if (!mounted) {
         return; // Again, check if the widget is still mounted before calling setState
+      }
       setState(() => _isFetchingLocation = false);
       debugPrint('Error updating user location: $e');
     }
@@ -487,13 +487,13 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _toggleLocationTracking,
         backgroundColor: Colors.blue,
-        child: Icon(_locationTimer == null ? Icons.gps_fixed : Icons.gps_off),
         elevation: 2.0,
+        child: Icon(_locationTimer == null ? Icons.gps_fixed : Icons.gps_off),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         color: Colors.green,
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         notchMargin: 6.0,
         child: Row(
           mainAxisSize: MainAxisSize.max,
@@ -501,10 +501,10 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             IconButton(
               icon:
-                  Icon(Icons.add, color: Colors.white), // Add the "Plus" button
+                  const Icon(Icons.add, color: Colors.white), // Add the "Plus" button
               onPressed: () {
                 Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => AddTokenPage()))
+                        MaterialPageRoute(builder: (context) => const AddTokenPage()))
                     .then((result) {
                   // Check if the result is true indicating that a token was sent successfully
                   if (result == true) {
@@ -514,11 +514,11 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.menu, color: Colors.white),
+              icon: const Icon(Icons.menu, color: Colors.white),
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ListPlacesPage()),
+                  MaterialPageRoute(builder: (context) => const ListPlacesPage()),
                 );
                 if (result == true) {
                   await _fetchUserIdAndPlaces();
@@ -530,20 +530,20 @@ class _HomePageState extends State<HomePage> {
               },
             ),
 
-            SizedBox(
+            const SizedBox(
                 width:
                     48), // This SizedBox serves as a placeholder for the FAB.
             IconButton(
-              icon: Icon(Icons.account_circle, color: Colors.white),
+              icon: const Icon(Icons.account_circle, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
                 );
               },
             ),
             IconButton(
-              icon: Icon(Icons.exit_to_app, color: Colors.white),
+              icon: const Icon(Icons.exit_to_app, color: Colors.white),
               onPressed: _logoutUser, // Updated to use _logoutUser
             ),
           ],
@@ -558,7 +558,7 @@ class _HomePageState extends State<HomePage> {
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            initialCenter: LatLng(45.7032695, 3.3448536),
+            initialCenter: const LatLng(45.7032695, 3.3448536),
             initialZoom: 8,
             interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
             onTap: (_, latLng) async {
@@ -606,7 +606,7 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               alignment: Alignment.center,
               color: Colors.black.withOpacity(0.5), // Semi-transparent overlay
-              child: CircularProgressIndicator(), // Loading indicator
+              child: const CircularProgressIndicator(), // Loading indicator
             ),
           ),
       ],

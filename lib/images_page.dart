@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'secure_storage_manager.dart';
-import 'create_place_page.dart';
 import 'package:latlong2/latlong.dart';
 import 'global_config.dart';
 
 class ImagesPage extends StatefulWidget {
   final LatLng position;
 
-  const ImagesPage({required this.position});
+  const ImagesPage({super.key, required this.position});
 
   @override
   _ImagesPageState createState() => _ImagesPageState();
@@ -82,7 +81,7 @@ class _ImagesPageState extends State<ImagesPage> {
   Future<void> _createImage() async {
     if (_imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an image')),
+        const SnackBar(content: Text('Please select an image')),
       );
       return;
     }
@@ -91,7 +90,7 @@ class _ImagesPageState extends State<ImagesPage> {
     if (_imageTitleController.text.isEmpty ||
         _imageDescriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Title and description cannot be empty.'),
           backgroundColor:
               Colors.red, // Make the background color red to indicate an error
@@ -104,7 +103,7 @@ class _ImagesPageState extends State<ImagesPage> {
       String baseUrl = GlobalConfig().serverUrl;
       String? authToken = await SecureStorageManager.getAuthToken();
 
-      List<int> imageBytes = await _imageFile!.readAsBytesSync();
+      List<int> imageBytes = _imageFile!.readAsBytesSync();
       String base64Image = base64Encode(imageBytes);
 
       Map<String, dynamic> body = {
@@ -130,7 +129,7 @@ class _ImagesPageState extends State<ImagesPage> {
           _imageFile = null;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Image created successfully'),
           ),
         );
@@ -178,13 +177,13 @@ class _ImagesPageState extends State<ImagesPage> {
   }
 
   Widget _buildPopup() {
-    if (_selectedImageId == null) return SizedBox.shrink();
+    if (_selectedImageId == null) return const SizedBox.shrink();
 
     final selectedImage = _images.firstWhere(
       (image) => image['imageId'] == _selectedImageId,
       orElse: () => null,
     );
-    if (selectedImage == null) return SizedBox.shrink();
+    if (selectedImage == null) return const SizedBox.shrink();
 
     // Check if the current user is the owner of the image
     bool isUserImageOwner = _currentUserId == selectedImage['userId'];
@@ -202,10 +201,10 @@ class _ImagesPageState extends State<ImagesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.memory(decodedBytes, fit: BoxFit.cover),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text("ID: ${selectedImage['imageId']}",
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 5),
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
             Text(selectedImage['description'] ?? 'No Description'),
           ],
         ),
@@ -213,8 +212,8 @@ class _ImagesPageState extends State<ImagesPage> {
       actions: <Widget>[
         if (isUserImageOwner)
           ElevatedButton.icon(
-            icon: Icon(Icons.edit, color: Colors.white),
-            label: Text('Edit', style: TextStyle(color: Colors.white)),
+            icon: const Icon(Icons.edit, color: Colors.white),
+            label: const Text('Edit', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               shape: RoundedRectangleBorder(
@@ -227,8 +226,8 @@ class _ImagesPageState extends State<ImagesPage> {
           ),
         if (isUserImageOwner)
           ElevatedButton.icon(
-            icon: Icon(Icons.delete, color: Colors.white),
-            label: Text('Delete', style: TextStyle(color: Colors.white)),
+            icon: const Icon(Icons.delete, color: Colors.white),
+            label: const Text('Delete', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               shape: RoundedRectangleBorder(
@@ -240,8 +239,6 @@ class _ImagesPageState extends State<ImagesPage> {
             },
           ),
         ElevatedButton(
-          child:
-              Text('Select this image', style: TextStyle(color: Colors.white)),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.deepPurple,
             shape: RoundedRectangleBorder(
@@ -251,9 +248,10 @@ class _ImagesPageState extends State<ImagesPage> {
           onPressed: () {
             Navigator.pop(context, _selectedImageId);
           },
+          child:
+              const Text('Select this image', style: TextStyle(color: Colors.white)),
         ),
         ElevatedButton(
-          child: Text('Close', style: TextStyle(color: Colors.white)),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.grey,
             shape: RoundedRectangleBorder(
@@ -261,6 +259,7 @@ class _ImagesPageState extends State<ImagesPage> {
             elevation: 5.0,
           ),
           onPressed: () => setState(() => _showPopup = false),
+          child: const Text('Close', style: TextStyle(color: Colors.white)),
         ),
       ],
     );
@@ -306,8 +305,8 @@ class _ImagesPageState extends State<ImagesPage> {
       barrierDismissible: false, // user must tap button for close dialog
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Confirm Deletion'),
-          content: SingleChildScrollView(
+          title: const Text('Confirm Deletion'),
+          content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text('Are you sure you want to delete this image?'),
@@ -316,13 +315,13 @@ class _ImagesPageState extends State<ImagesPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Close the dialog
               },
             ),
             ElevatedButton(
-              child: Text('Delete'),
+              child: const Text('Delete'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Close the dialog
                 _deleteImage(imageId); // Call the delete method
@@ -341,13 +340,13 @@ class _ImagesPageState extends State<ImagesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit Image Information'),
+          title: const Text('Edit Image Information'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _imageTitleController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Image Title',
                   hintText: 'Enter the title of the image',
                   border: OutlineInputBorder(),
@@ -356,10 +355,10 @@ class _ImagesPageState extends State<ImagesPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _imageDescriptionController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Image Description',
                   hintText: 'Enter a description for the image',
                   border: OutlineInputBorder(),
@@ -373,13 +372,13 @@ class _ImagesPageState extends State<ImagesPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
-              child: Text('Save'),
+              child: const Text('Save'),
               onPressed: () async {
                 await _updateImage(
                   selectedImage['imageId'],
@@ -452,14 +451,14 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Images',
           style: TextStyle(
             color: Colors.white,
           ),
         ),
         backgroundColor: Colors.green,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: Colors.white, // This sets the back arrow to white
         ),
       ),
@@ -478,14 +477,14 @@ class _ImagesPageState extends State<ImagesPage> {
                 ),
                 child: TextFormField(
                   controller: _imageTitleController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Image Title',
                     hintText: 'Enter the title of the image',
                     border: OutlineInputBorder(),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Theme(
                 data: Theme.of(context).copyWith(
                   colorScheme: Theme.of(context).colorScheme.copyWith(
@@ -494,7 +493,7 @@ class _ImagesPageState extends State<ImagesPage> {
                 ),
                 child: TextFormField(
                   controller: _imageDescriptionController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Image Description',
                     hintText: 'Enter a description for the image',
                     border: OutlineInputBorder(),
@@ -502,11 +501,11 @@ class _ImagesPageState extends State<ImagesPage> {
                   maxLines: 3,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Public'),
+                  const Text('Public'),
                   Switch(
                     value: _isPublic,
                     onChanged: (bool newValue) {
@@ -518,16 +517,16 @@ class _ImagesPageState extends State<ImagesPage> {
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _pickImage,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                 ),
                 child:
-                    Text('Pick Image', style: TextStyle(color: Colors.white)),
+                    const Text('Pick Image', style: TextStyle(color: Colors.white)),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               if (_imageFile != null)
                 _imageFile != null
                     ? Container(
@@ -542,7 +541,7 @@ class _ImagesPageState extends State<ImagesPage> {
                           fit: BoxFit.cover,
                         ),
                       )
-                    : Text("No image selected."),
+                    : const Text("No image selected."),
               if (_imageFile != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -551,14 +550,14 @@ class _ImagesPageState extends State<ImagesPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
-                    child: Text(
+                    child: const Text(
                       'Upload Image',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 'Your Images',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -567,7 +566,7 @@ class _ImagesPageState extends State<ImagesPage> {
                 decoration: InputDecoration(
                   labelText:
                       'Search Images', // Change this to your preferred label
-                  labelStyle: TextStyle(
+                  labelStyle: const TextStyle(
                     color:
                         Colors.grey, // Set the color of the label text to grey
                   ),
@@ -576,7 +575,7 @@ class _ImagesPageState extends State<ImagesPage> {
                         .min, // This is important to align your icons properly
                     children: [
                       IconButton(
-                        icon: Icon(Icons.clear),
+                        icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
                           // Add any additional logic you want to execute when the clear button is pressed
@@ -584,7 +583,7 @@ class _ImagesPageState extends State<ImagesPage> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.search),
+                        icon: const Icon(Icons.search),
                         onPressed: () {
                           _searchImages(_searchController.text
                               .trim()); // Implement your search logic here
@@ -592,12 +591,12 @@ class _ImagesPageState extends State<ImagesPage> {
                       ),
                     ],
                   ),
-                  enabledBorder: OutlineInputBorder(
+                  enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                         color: Colors.grey,
                         width: 1.0), // Set the enabled border color to grey
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  focusedBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                         color: Colors.green,
                         width: 2.0), // Set the focused border color to green
@@ -608,11 +607,11 @@ class _ImagesPageState extends State<ImagesPage> {
                   _searchImages(value.trim());
                 },
               ),
-              SizedBox(height: 8),
-              Container(
+              const SizedBox(height: 8),
+              SizedBox(
                 height: MediaQuery.of(context).size.height * 0.4,
                 child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 4.0,
                     mainAxisSpacing: 4.0,
@@ -647,12 +646,12 @@ class _ImagesPageState extends State<ImagesPage> {
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 image['name'] ?? 'No Title',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
                             subtitle: Text(
                               'ID: ${image['imageId']}',
-                              style: TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                         ),
