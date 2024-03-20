@@ -4,6 +4,13 @@ Application mobile de gestion de lieux d'intérêts.
 
 ## Guide d'installation et d'exécution
 
+### Prérequis
+
+Vous pouvez récupérer le projet via la commande suivante :
+```bash
+git clone git@github.com:Touklakos-Studio/georganise_flutter.git
+```
+
 ### Installation
 
 1. **Installez Android Studio** : 
@@ -24,7 +31,10 @@ Application mobile de gestion de lieux d'intérêts.
      - Installez l'extension Flutter disponible sur le marketplace de VS Code.
 
 4. **Récupération des Dépendances**:
-   - Tapez la commande `flutter pub get` dans le terminal pour installer toutes les dépendances nécessaires au projet.
+   - Tapez la commande suivante dans le terminal pour installer toutes les dépendances nécessaires au projet :
+        ```bash
+        flutter pub get
+        ```
 
 ### Exécution 
 
@@ -33,7 +43,10 @@ Application mobile de gestion de lieux d'intérêts.
    - *Visual Studio Code* : Assurez-vous qu'un émulateur est en cours d'exécution ou qu'un appareil est connecté.
 
 2. **Lancement du Projet**:
-   - Exécutez la commande `flutter run` dans le terminal. Le projet devrait se compiler et s'exécuter sur l'émulateur ou l'appareil connecté.
+   - Exécutez la commande suivante dans le terminal pour compiler et exécuter l'application sur l'émulateur ou l'appareil connecté :
+        ```bash
+        flutter run
+        ```
 
 ### Génération d'un APK 
 
