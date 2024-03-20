@@ -47,6 +47,7 @@ class _PlaceCardState extends State<PlaceCard> {
     // If there are other data initialization steps, include them here
   }
 
+  // Fetch the username for the place
   Future<void> _fetchUserNameForPlace() async {
     String? userName = await _fetchUserName(widget.place.userId);
     if (mounted) {
@@ -56,6 +57,7 @@ class _PlaceCardState extends State<PlaceCard> {
     }
   }
 
+  // Fetch the current user's data to get the nickname
   Future<void> _fetchCurrentUserData() async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -87,6 +89,7 @@ class _PlaceCardState extends State<PlaceCard> {
     }
   }
 
+  // Fetch tag names for the place
   Future<List<Map<String, dynamic>>> _fetchTagNames(
       List<dynamic> placeTags) async {
     List<Map<String, dynamic>> tagDetails = [];
@@ -102,6 +105,7 @@ class _PlaceCardState extends State<PlaceCard> {
     return tagDetails;
   }
 
+  // Fetch the tag name for a place tag
   Future<String?> _fetchTagName(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) return null;
@@ -124,6 +128,7 @@ class _PlaceCardState extends State<PlaceCard> {
     return null;
   }
 
+  // Fetch the image for the place
   Future<void> _fetchImage() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null || !mounted) return;
@@ -151,6 +156,7 @@ class _PlaceCardState extends State<PlaceCard> {
     }
   }
 
+  // Fetch the username for a user ID
   Future<String?> _fetchUserName(int userId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -181,6 +187,7 @@ class _PlaceCardState extends State<PlaceCard> {
     }
   }
 
+  // Delete the place from the server
   Future<void> _deletePlace() async {
     showDialog(
       context: context,
@@ -230,6 +237,7 @@ class _PlaceCardState extends State<PlaceCard> {
     );
   }
 
+  // Fetch the tag ID from a place tag ID
   Future<int?> _fetchTagIdFromPlaceTagId(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -251,26 +259,6 @@ class _PlaceCardState extends State<PlaceCard> {
     } else {
       debugPrint('Failed to fetch tagId from placeTagId: ${response.body}');
       return null; // Or handle the error as you see fit
-    }
-  }
-
-  Future<Map<String, dynamic>> _fetchTagDetails(int tagId) async {
-    String? authToken = await SecureStorageManager.getAuthToken();
-    if (authToken == null) throw Exception("Auth token is null");
-    String baseUrl = GlobalConfig().serverUrl;
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/tag/$tagId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': 'authToken=$authToken',
-      },
-    );
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      debugPrint(response.statusCode.toString());
-      debugPrint('Failed to fetch tag details: ${response.body}');
-      throw Exception('Failed to fetch tag details');
     }
   }
 

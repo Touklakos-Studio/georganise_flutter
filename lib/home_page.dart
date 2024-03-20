@@ -38,7 +38,8 @@ class _HomePageState extends State<HomePage> {
     _fetchUserIdAndPlaces();
 
     // Initialize the timer to fetch places every minute
-    _placesFetchTimer = Timer.periodic(const Duration(minutes: 1), (Timer t) async {
+    _placesFetchTimer =
+        Timer.periodic(const Duration(minutes: 1), (Timer t) async {
       final int? userId = await _fetchUserId();
       if (userId != null) {
         await _fetchPlaces(userId);
@@ -53,6 +54,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  // Fetch the user ID an then fetch the places for that user
   Future<void> _fetchUserIdAndPlaces() async {
     try {
       setState(() {
@@ -71,6 +73,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Fetch the user ID from the backend
   Future<int?> _fetchUserId() async {
     String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
@@ -91,6 +94,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Fetch the places from the backend for the given user ID
   Future<void> _fetchPlaces(int userId) async {
     String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
@@ -123,6 +127,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Convert the list of places to a list of markers
   List<Marker> _convertPlacesToMarkers(List<Place> places) {
     return places.map((place) {
       debugPrint(
@@ -143,6 +148,7 @@ class _HomePageState extends State<HomePage> {
     }).toList();
   }
 
+  // Show the place details in an AlertDialog
   void _showPlaceDetails(Place place) {
     showDialog(
       context: context,
@@ -221,6 +227,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Launch the maps URL based on the latitude, longitude, and map app
   Future<void> _launchMapsUrl(
       double latitude, double longitude, String mapApp) async {
     String url = '';
@@ -242,6 +249,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Fetch the tag names for the given place tags
   Future<List<String>> _fetchTagNames(List<dynamic> placeTags) async {
     List<String> tagNames = [];
 
@@ -256,6 +264,7 @@ class _HomePageState extends State<HomePage> {
     return tagNames;
   }
 
+  // Fetch the tag name for the given place tag ID
   Future<String?> _fetchTagName(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) return null;
@@ -278,6 +287,7 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  // Logout the user and navigate to the WelcomePage
   Future<void> _logoutUser() async {
     try {
       String baseUrl = GlobalConfig().serverUrl;
@@ -315,6 +325,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Toggle location tracking for the user
   Future<void> _toggleLocationTracking() async {
     if (_locationTimer == null) {
       setState(() => _isFetchingLocation = true); // Start fetching location
@@ -336,13 +347,14 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _locationTimer?.cancel();
         _locationTimer = null;
-        _markers
-            .removeWhere((marker) => marker.key == const ValueKey('UserLocation'));
+        _markers.removeWhere(
+            (marker) => marker.key == const ValueKey('UserLocation'));
         _isFetchingLocation = false; // Stop fetching location
       });
     }
   }
 
+  // Fetch the user name for the given user ID
   Future<String?> _fetchUserName(int userId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -372,6 +384,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Update the user location on the backend
   Future<void> _updateUserLocation() async {
     try {
       final Position position = await Geolocator.getCurrentPosition();
@@ -398,8 +411,8 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return; // Check if the widget is still mounted
 
       setState(() {
-        _markers
-            .removeWhere((marker) => marker.key == const ValueKey('UserLocation'));
+        _markers.removeWhere(
+            (marker) => marker.key == const ValueKey('UserLocation'));
         _markers.add(
           Marker(
             key: const ValueKey('UserLocation'),
@@ -407,7 +420,8 @@ class _HomePageState extends State<HomePage> {
             child: GestureDetector(
               onTap: () => _showPlaceDetails(
                   place), // Ensure _showPlaceDetails is defined and works
-              child: const Icon(Icons.location_pin, color: Colors.blue, size: 50),
+              child:
+                  const Icon(Icons.location_pin, color: Colors.blue, size: 50),
             ),
           ),
         );
@@ -423,6 +437,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Create a realtime place with the given location and description or update the existing place if it already exists
   Future<Place> _createOrUpdatePlaceWithLocation(String nickname,
       String description, double latitude, double longitude) async {
     String baseUrl = GlobalConfig().serverUrl;
@@ -500,11 +515,13 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             IconButton(
-              icon:
-                  const Icon(Icons.add, color: Colors.white), // Add the "Plus" button
+              icon: const Icon(Icons.add,
+                  color: Colors.white), // Add the "Plus" button
               onPressed: () {
-                Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const AddTokenPage()))
+                Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AddTokenPage()))
                     .then((result) {
                   // Check if the result is true indicating that a token was sent successfully
                   if (result == true) {
@@ -518,7 +535,8 @@ class _HomePageState extends State<HomePage> {
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ListPlacesPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const ListPlacesPage()),
                 );
                 if (result == true) {
                   await _fetchUserIdAndPlaces();

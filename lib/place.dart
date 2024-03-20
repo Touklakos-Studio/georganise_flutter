@@ -1,5 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
+// Represents a place in the application
 class Place {
   final int placeId;
   final double latitude;
@@ -32,7 +33,7 @@ class Place {
       description: json['description'],
       imageId: json['imageId'] as int?,
       userId: json['userId'],
-      placeTags: json['placeTags'] ?? [], // Assuming placeTags is optional
+      placeTags: json['placeTags'] ?? [],
     );
   }
 }

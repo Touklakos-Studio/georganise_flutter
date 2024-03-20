@@ -12,11 +12,13 @@ class GlobalConfig {
     return _singleton;
   }
 
+  // Load the server URL from SharedPreferences
   Future<void> _loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _serverUrl = prefs.getString('serverUrl') ?? _serverUrl;
   }
 
+  // Save the server URL to SharedPreferences
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('serverUrl', _serverUrl);

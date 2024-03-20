@@ -28,6 +28,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
 
   String baseUrl = GlobalConfig().serverUrl;
 
+  // Fetch user ID to use in other API calls
   Future<int?> _fetchUserId() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     debugPrint('AuthToken : $authToken');
@@ -48,6 +49,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     }
   }
 
+  // Fetch user's places from the backend
   Future<void> _fetchPlaces() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     final response = await http.get(
@@ -75,6 +77,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     }
   }
 
+  // Search for places based on the query
   Future<void> _searchPlaces(String query) async {
     if (query.isEmpty) {
       // If the search query is empty, show all places
@@ -122,6 +125,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     }
   }
 
+  // Fetch tag names for places and update the place object with tag names
   Future<List<Place>> _fetchAndUpdateTagNamesForPlaces(
       List<Place> places) async {
     List<Future> fetchTagNamesTasks = [];
@@ -142,6 +146,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     return places; // Return places with updated tag names
   }
 
+  // Fetch tag name for a place tag ID
   Future<String?> _fetchTagName(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) return "Unknown Tag";
@@ -164,6 +169,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     return "Unknown Tag"; // Return "Unknown Tag" if fetch fails
   }
 
+  // Clear search and show all places
   void _clearSearch() {
     setState(() {
       _searchController.clear();
@@ -172,6 +178,7 @@ class _ListPlacesPageState extends State<ListPlacesPage> {
     });
   }
 
+  // Refresh search results based on the search query or show all places if query is empty or null
   void refreshSearch() {
     setState(() {
       _isLoading = true; // Show loading indicator while fetching

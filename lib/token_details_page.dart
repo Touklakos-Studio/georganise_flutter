@@ -25,6 +25,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     _searchController.addListener(_onSearchChanged);
   }
 
+  // Filter the token details based on the search query
   void _onSearchChanged() {
     setState(() {
       _filteredTokenDetails = widget.tokenDetails
@@ -37,11 +38,12 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     });
   }
 
+  // Update the access right of a token
   Future<void> _updateTokenAccessRight(int tokenId, String accessRight) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Auth token is not available")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Auth token is not available")));
       return;
     }
     String baseUrl = GlobalConfig().serverUrl;
@@ -55,19 +57,20 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Token access right updated successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Token access right updated successfully')));
       Navigator.of(context).pop(
           true); // Assuming you might have a mechanism to refresh the parent page.
     } else if (response.statusCode == 401) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unauthorized to update token access right')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Unauthorized to update token access right')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update token access right')));
     }
   }
 
+  // Edit token access right button
   Widget _editTokenAccessRightButton(int tokenId, String currentAccessRight) {
     return IconButton(
       icon: const Icon(Icons.edit, color: Colors.blue),
@@ -77,6 +80,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
   }
 
+  // Show the edit token dialog
   void _showEditTokenDialog(int tokenId, String currentAccessRight) {
     bool isWriter = currentAccessRight == "WRITER";
     showDialog(
@@ -116,6 +120,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
   }
 
+  // Delete token button
   Widget _deleteTokenButton(int tokenId) {
     return IconButton(
       icon: const Icon(Icons.delete, color: Colors.red),
@@ -123,6 +128,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
   }
 
+  // Show the delete confirmation dialog
   void _showDeleteConfirmation(int tokenId) {
     showDialog(
       context: context,
@@ -150,11 +156,12 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
   }
 
+  // Delete a token
   Future<void> _deleteToken(int tokenId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Auth token is not available")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Auth token is not available")));
       return;
     }
 
@@ -168,8 +175,8 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Token deleted successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Token deleted successfully')));
       // Optionally refresh the list or navigate back
       setState(() {
         widget.tokenDetails.removeWhere((token) => token['tokenId'] == tokenId);
@@ -178,11 +185,12 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Unauthorized to delete token')));
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Failed to delete token')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete token')));
     }
   }
 
+  // Copy token value to clipboard
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -193,6 +201,7 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
     });
   }
 
+  // Fetch the nickname of a user
   Future<String> _fetchNickname(int? userId) async {
     // Check if userId is null and return a default nickname value
     if (userId == null) {
@@ -319,7 +328,8 @@ class _TokenDetailsPageState extends State<TokenDetailsPage> {
                       children: [
                         // Copy to Clipboard button is shown to everyone
                         IconButton(
-                          icon: const Icon(Icons.content_copy, color: Colors.grey),
+                          icon: const Icon(Icons.content_copy,
+                              color: Colors.grey),
                           onPressed: () =>
                               _copyToClipboard(token['tokenValue']),
                         ),

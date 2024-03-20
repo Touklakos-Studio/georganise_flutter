@@ -40,6 +40,7 @@ class _ImagesPageState extends State<ImagesPage> {
     });
   }
 
+  // Retrieve images from the backend
   Future<void> _fetchImages() async {
     try {
       String baseUrl = GlobalConfig().serverUrl;
@@ -61,12 +62,14 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
+  // Toggle image selection
   void _toggleImageSelection(int imageId) {
     setState(() {
       _selectedImageId = (_selectedImageId == imageId) ? null : imageId;
     });
   }
 
+  // Pick an image from the gallery
   Future<void> _pickImage() async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -78,6 +81,7 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
+  // Create a new image and add it to the backend
   Future<void> _createImage() async {
     if (_imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,6 +146,7 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
+  // Search for images based on a keyword
   Future<void> _searchImages(String keyword) async {
     if (keyword.trim().isEmpty) {
       // If the search query is empty, fetch all images instead.
@@ -176,6 +181,7 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
+  // Build the popup dialog for image details
   Widget _buildPopup() {
     if (_selectedImageId == null) return const SizedBox.shrink();
 
@@ -248,8 +254,8 @@ class _ImagesPageState extends State<ImagesPage> {
           onPressed: () {
             Navigator.pop(context, _selectedImageId);
           },
-          child:
-              const Text('Select this image', style: TextStyle(color: Colors.white)),
+          child: const Text('Select this image',
+              style: TextStyle(color: Colors.white)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -265,6 +271,7 @@ class _ImagesPageState extends State<ImagesPage> {
     );
   }
 
+  // Delete an image from the backend
   Future<void> _deleteImage(int imageId) async {
     try {
       String baseUrl = GlobalConfig().serverUrl;
@@ -299,6 +306,7 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
+  // Confirm deletion of an image before proceeding with the deletion process
   Future<void> _confirmDeleteImage(int imageId) async {
     return showDialog<void>(
       context: context,
@@ -333,6 +341,7 @@ class _ImagesPageState extends State<ImagesPage> {
     );
   }
 
+  // Edit image information (title and description) in a popup dialog
   void _editImage(dynamic selectedImage) {
     _imageTitleController.text = selectedImage['name'] ?? '';
     _imageDescriptionController.text = selectedImage['description'] ?? '';
@@ -394,6 +403,7 @@ class _ImagesPageState extends State<ImagesPage> {
     );
   }
 
+  // Update image information in the backend
   Future<void> _updateImage(
       int imageId, String name, String description) async {
     try {
@@ -427,6 +437,7 @@ class _ImagesPageState extends State<ImagesPage> {
     }
   }
 
+  // Fetch the user ID of the currently logged-in user
   Future<int?> _fetchUserId() async {
     String baseUrl = GlobalConfig().serverUrl;
     String? authToken = await SecureStorageManager.getAuthToken();
@@ -523,8 +534,8 @@ class _ImagesPageState extends State<ImagesPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                 ),
-                child:
-                    const Text('Pick Image', style: TextStyle(color: Colors.white)),
+                child: const Text('Pick Image',
+                    style: TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 16),
               if (_imageFile != null)
@@ -646,7 +657,8 @@ class _ImagesPageState extends State<ImagesPage> {
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 image['name'] ?? 'No Title',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                             subtitle: Text(

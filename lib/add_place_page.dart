@@ -15,6 +15,7 @@ class _AddTokenPageState extends State<AddTokenPage> {
   final _formKey = GlobalKey<FormState>();
   String _tokenId = '';
 
+  // Send a token to backend in order to retrieve places of a specific tag
   void _sendToken() async {
     String baseUrl = GlobalConfig().serverUrl;
     final isValid = _formKey.currentState?.validate();

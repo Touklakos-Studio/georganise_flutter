@@ -1,3 +1,4 @@
+// This file contains the Tag class which is used to represent a tag object.
 class Tag {
   final int id;
   final String title;

@@ -30,6 +30,7 @@ class _TagsPageState extends State<TagsPage> {
 
   String baseUrl = GlobalConfig().serverUrl;
 
+  // Fetch all tags from the server
   Future<void> _fetchTags() async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -58,6 +59,7 @@ class _TagsPageState extends State<TagsPage> {
     }
   }
 
+  // Toggle the selection of a tag
   void _toggleTagSelection(int tagId) {
     setState(() {
       if (_selectedTagIds.contains(tagId)) {
@@ -68,6 +70,7 @@ class _TagsPageState extends State<TagsPage> {
     });
   }
 
+  // Create a new tag on the server
   Future<void> _createTag() async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -106,6 +109,7 @@ class _TagsPageState extends State<TagsPage> {
     }
   }
 
+  // Delete a tag from the server
   Future<void> _deleteTag(int tagId) async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -120,15 +124,15 @@ class _TagsPageState extends State<TagsPage> {
 
       if (response.statusCode == 200) {
         debugPrint('Tag deleted successfully');
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Tag deleted successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tag deleted successfully')));
         await _fetchTags(); // Refetch the tags after deleting one
       } else {
         debugPrint('Failed to delete tag');
         debugPrint('Response status code: ${response.statusCode}');
         debugPrint('Response body: ${response.body}');
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Failed to delete tag')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete tag')));
       }
     } catch (e) {
       debugPrint('An error occurred while deleting a tag');
@@ -136,6 +140,7 @@ class _TagsPageState extends State<TagsPage> {
     }
   }
 
+  // Fetch tags by keyword
   Future<void> _fetchTagsByKeyword(String keyword) async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -173,6 +178,7 @@ class _TagsPageState extends State<TagsPage> {
     }
   }
 
+  // Edit tag description
   Future<void> _editTagDescription(dynamic tag) async {
     final TextEditingController editDescriptionController =
         TextEditingController(text: tag['description']);
@@ -184,7 +190,8 @@ class _TagsPageState extends State<TagsPage> {
           title: const Text('Edit Tag Description'),
           content: TextField(
             controller: editDescriptionController,
-            decoration: const InputDecoration(hintText: "Enter new description"),
+            decoration:
+                const InputDecoration(hintText: "Enter new description"),
           ),
           actions: <Widget>[
             TextButton(
@@ -207,6 +214,7 @@ class _TagsPageState extends State<TagsPage> {
     );
   }
 
+  // Update tag description
   Future<void> _updateTagDescription(int tagId, String newDescription) async {
     try {
       String? authToken = await SecureStorageManager.getAuthToken();
@@ -224,13 +232,13 @@ class _TagsPageState extends State<TagsPage> {
 
       if (response.statusCode == 200) {
         debugPrint('Tag description updated successfully');
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tag description updated successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Tag description updated successfully')));
         await _fetchTags(); // Refetch tags to get updated list
       } else if (response.statusCode == 401) {
         debugPrint('Unauthorized to update tag description: ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unauthorized to update tag description')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Unauthorized to update tag description')));
       } else {
         debugPrint('Failed to update tag description: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(

@@ -19,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
   String _password = '';
 
+  // Attempt to log in with the provided email and password
   void _tryLogin() async {
     String baseUrl = GlobalConfig().serverUrl;
     final isValid = _formKey.currentState?.validate();

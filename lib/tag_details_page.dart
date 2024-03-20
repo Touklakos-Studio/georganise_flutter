@@ -21,6 +21,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
   String _nickname = '';
   bool _includeNickname = false;
 
+  // Fetch tag details from the server
   Future<Map<String, dynamic>> fetchTagDetails() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -43,6 +44,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     }
   }
 
+  // Fetch place details from the server
   Future<Map<String, dynamic>> fetchPlaceDetails(int placeTagId) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -66,6 +68,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     }
   }
 
+  // Generate a token for the tag
   void _generateToken(String accessRight) async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -122,6 +125,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     }
   }
 
+  // Show a dialog to generate a token
   void _showGenerateTokenDialog() {
     showDialog(
       context: context,
@@ -210,6 +214,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     );
   }
 
+  // Fetch token details from the server
   Future<List<dynamic>> fetchTokenDetails() async {
     String? authToken = await SecureStorageManager.getAuthToken();
     if (authToken == null) {
@@ -235,6 +240,7 @@ class _TagDetailsPageState extends State<TagDetailsPage> {
     }
   }
 
+  // Navigate to the TokenDetailsPage
   void _navigateToTokenDetailsPage(List<dynamic> tokenDetails) {
     Navigator.of(context).push(
       MaterialPageRoute(

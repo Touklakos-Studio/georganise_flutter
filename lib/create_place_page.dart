@@ -53,6 +53,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     }
   }
 
+  // Retrieve tagIds from placeTagIds
   Future<List<int>> _fetchTagIds(List<dynamic> placeTagIds) async {
     List<int> tagIds = [];
     String baseUrl = GlobalConfig().serverUrl;
@@ -82,6 +83,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     return tagIds;
   }
 
+  // Create a new place or update an existing place
   Future<void> _submitPlaceData() async {
     if (!_validateInputs()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -139,11 +141,13 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     } else {
       debugPrint('Failed to submit place. Status code: ${response.statusCode}');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('An error occurred while submitting the place')),
+        const SnackBar(
+            content: Text('An error occurred while submitting the place')),
       );
     }
   }
 
+  // Pick an image from the gallery
   Future<void> _pickImage() async {
     final selectedImageId = await Navigator.push(
       context,
@@ -158,6 +162,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     }
   }
 
+  // Select tags for the place
   Future<void> _selectTags() async {
     final selectedTagIds = await Navigator.push(
       context,
@@ -173,6 +178,7 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
     }
   }
 
+  // Validate the input fields
   bool _validateInputs() {
     return _titleController.text.isNotEmpty &&
         _descriptionController.text.isNotEmpty;
@@ -219,7 +225,8 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
                   fillColor: Colors.white,
                   filled: true,
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -229,7 +236,8 @@ class _CreatePlacePageState extends State<CreatePlacePage> {
                   fillColor: Colors.white,
                   filled: true,
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 16),
             ],

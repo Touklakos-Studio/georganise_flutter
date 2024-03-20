@@ -24,6 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String baseUrl = GlobalConfig().serverUrl;
 
+  // Attempt to register with the provided nickname, email, and password
   void _tryRegister() async {
     final isValid = _formKey.currentState?.validate();
     if (isValid == true) {

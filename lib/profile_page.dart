@@ -21,6 +21,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _fetchUserData();
   }
 
+  // Fetch the user data from the server
   Future<void> _fetchUserData() async {
     try {
       String baseUrl = GlobalConfig().serverUrl;
@@ -47,6 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Show a confirmation dialog before deleting the account
   Future<bool> _showDeleteConfirmationDialog() async {
     bool? result = await showDialog<bool>(
       context: context,
@@ -76,6 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
         false; // Ensures a boolean return, defaulting to false if null
   }
 
+  // Delete the account and log out the user if the user confirms the deletion
   Future<void> _deleteAccountAndLogout() async {
     // First, show the delete confirmation dialog and wait for the user's response
     bool confirmDelete = await _showDeleteConfirmationDialog();
