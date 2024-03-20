@@ -66,8 +66,14 @@ class _AddTokenPageState extends State<AddTokenPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Token'),
+        title: const Text(
+          'Add Token',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.green,
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
