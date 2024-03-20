@@ -6,7 +6,7 @@ Application mobile de gestion de lieux d'intérêts.
 
 ### Prérequis
 
-Vous pouvez récupérer le projet via la commande suivante :
+Vous pouvez récupérer le projet en exécutant la commande suivante dans le terminal :
 ```bash
 git clone git@github.com:Touklakos-Studio/georganise_flutter.git
 ```
@@ -21,7 +21,10 @@ git clone git@github.com:Touklakos-Studio/georganise_flutter.git
    - Assurez-vous d'ajouter le Flutter SDK au PATH.
 
 2. **Vérifier votre installation** :
-    - Exécutez la commande `flutter doctor.
+    - Exécutez la commande suivante dans le terminal :
+        ```bash
+        flutter doctor
+        ```
     - Suivez les recommandations pour résoudre les éventuelles erreurs ou avertissements.
 
 2. **Configurez votre IDE** :
@@ -31,7 +34,7 @@ git clone git@github.com:Touklakos-Studio/georganise_flutter.git
      - Installez l'extension Flutter disponible sur le marketplace de VS Code.
 
 4. **Récupération des Dépendances**:
-   - Tapez la commande suivante dans le terminal pour installer toutes les dépendances nécessaires au projet :
+   - Exécutez la commande suivante dans le terminal pour installer toutes les dépendances nécessaires au projet :
         ```bash
         flutter pub get
         ```
@@ -50,5 +53,8 @@ git clone git@github.com:Touklakos-Studio/georganise_flutter.git
 
 ### Génération d'un APK 
 
-- Exécutez `flutter build apk` dans le terminal, au répertoire racine du projet.
+- Exécutez la commande suivante dans le terminal, à la racine du projet, pour générer un APK :
+    ```bash
+    flutter build apk
+    ```
 - L'APK généré se trouve dans `build/app/outputs/flutter-apk/app-release.apk`.
