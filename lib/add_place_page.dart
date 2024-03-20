@@ -83,11 +83,32 @@ class _AddTokenPageState extends State<AddTokenPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               TextFormField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Token',
+                  labelStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.white,
-                  border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey, // Grey border when nothing is typed
+                      width: 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.green, // Green border when typing
+                      width: 2.0,
+                    ),
+                  ),
+                  // Clear button
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: () {
+                      // Clear the text field content
+                      _formKey.currentState?.reset();
+                      // Add additional logic if needed
+                    },
+                  ),
                 ),
                 onSaved: (value) => _tokenId = value ?? '',
                 validator: (value) {
