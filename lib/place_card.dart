@@ -319,32 +319,55 @@ class _PlaceCardState extends State<PlaceCard> {
                             spacing: 8.0, // Space between chips
                             runSpacing: 4.0, // Space between lines
                             children: snapshot.data!
-                                .map((tagDetail) => GestureDetector(
-                                      onTap: () async {
-                                        // Assuming _fetchTagIdFromPlaceTagId returns the correct tagId
-                                        int? tagId =
-                                            await _fetchTagIdFromPlaceTagId(
-                                                tagDetail['placeTagId']);
-                                        if (tagId != null) {
-                                          // Navigate to TagDetailsPage with fetched tag details
-                                          Navigator.of(context)
-                                              .push(MaterialPageRoute(
-                                            builder: (context) =>
-                                                TagDetailsPage(
-                                              // Assuming TagDetailsPage takes a tagId argument
-                                              tagId: tagId,
-                                            ),
-                                          ));
-                                        } else {
-                                          debugPrint(
-                                              "Failed to fetch tagId from placeTagId");
-                                        }
-                                      },
-                                      child: Chip(
-                                        label: Text(tagDetail['tagName']),
-                                        backgroundColor: Colors.green,
+                                .map(
+                                  (tagDetail) => InkWell(
+                                    onTap: () async {
+                                      int? tagId =
+                                          await _fetchTagIdFromPlaceTagId(
+                                              tagDetail['placeTagId']);
+                                      if (tagId != null) {
+                                        Navigator.of(context)
+                                            .push(MaterialPageRoute(
+                                          builder: (context) =>
+                                              TagDetailsPage(tagId: tagId),
+                                        ));
+                                      } else {
+                                        debugPrint(
+                                            "Failed to fetch tagId from placeTagId");
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Colors.green,
+                                            Colors.green[800]!,
+                                          ],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.3),
+                                            spreadRadius: 2,
+                                            blurRadius: 5,
+                                            offset: Offset(0, 3),
+                                          ),
+                                        ],
                                       ),
-                                    ))
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 5),
+                                        child: Text(
+                                          tagDetail['tagName'],
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                           ),
                         );
